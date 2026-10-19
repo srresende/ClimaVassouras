@@ -1,3 +1,4 @@
+// @ts-check
 // Aba Ano: os 12 meses do ano escolhido contra a média de referência.
 
 import {

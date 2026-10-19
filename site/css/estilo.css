@@ -203,6 +203,44 @@ main.conteiner {
     color: #fca5a5;
 }
 
+.botao {
+    margin-top: 16px;
+    padding: 8px 20px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--destaque);
+    color: var(--fundo);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.botao:focus-visible {
+    outline: 2px solid var(--texto);
+    outline-offset: 2px;
+}
+
+/* Erro numa aba: esconde o conteúdo pela metade e mostra só o aviso. */
+.com-erro > :not(.erro-aba) {
+    display: none;
+}
+
+.erro-aba {
+    margin: 0;
+}
+
+.sem-grafico {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 16px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--texto-fraco);
+}
+
 /* --- Abas --------------------------------------------------------------- */
 
 .abas {
@@ -551,9 +589,14 @@ td.frio {
     cursor: pointer;
 }
 
-.calendario-celula:hover {
+.calendario-celula:hover,
+.calendario-celula:focus-visible {
     outline: 2px solid var(--texto);
     outline-offset: 1px;
+}
+
+.calendario-celula:focus-visible {
+    outline-color: var(--destaque);
 }
 
 .calendario-celula.vazia,

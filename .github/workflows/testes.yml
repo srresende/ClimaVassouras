@@ -7,6 +7,8 @@ on:
       - "coleta/**"
       - "site/js/**"
       - "testes/**"
+      - "tipos/**"
+      - "jsconfig.json"
       - "requirements*.txt"
       - "pyproject.toml"
   pull_request:
@@ -40,3 +42,6 @@ jobs:
           node-version: "24"
 
       - run: node --test "testes/*.test.mjs"
+
+      # Checagem de tipos do JS (JSDoc + @ts-check), sem build.
+      - run: npx --yes -p typescript@5.9 tsc -p jsconfig.json

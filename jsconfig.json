@@ -1,0 +1,14 @@
+{
+    "//": "Checagem de tipos do JS do site, sem build: npx -p typescript tsc -p jsconfig.json",
+    "compilerOptions": {
+        "checkJs": true,
+        "allowJs": true,
+        "noEmit": true,
+        "target": "ES2022",
+        "module": "ES2022",
+        "moduleResolution": "bundler",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "strict": false
+    },
+    "include": ["site/js/**/*.js", "tipos/**/*.d.ts"]
+}

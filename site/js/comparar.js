@@ -1,3 +1,4 @@
+// @ts-check
 // Aba Comparar: o mês escolhido em cada ano desde 2020.
 
 import {

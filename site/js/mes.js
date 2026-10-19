@@ -1,3 +1,4 @@
+// @ts-check
 // Aba Mês: 10 cards, dois gráficos e a tabela do mês selecionado.
 
 import {
@@ -5,9 +6,16 @@ import {
     ehFrio, ehQuente, extremo, formatarNumero, media, total,
 } from './dados.js';
 import { card, elemento, icone } from './dom.js';
+import { desenhar } from './graficos.js';
 
-const graficos = { temperatura: null, chuva: null };
+/** @typedef {import('./dados.js').Registro} Registro */
 
+/**
+ * @param {'tempMin' | 'tempMax' | 'sensMin' | 'sensMax' | 'chuva'} campo
+ * @param {'min' | 'max'} tipo
+ * @param {string} unidade
+ * @returns {(registros: Registro[]) => { valor: string, detalhe: string }}
+ */
 function cardExtremo(campo, tipo, unidade) {
     return registros => {
         const registro = extremo(registros, campo, tipo);
@@ -103,10 +111,7 @@ function renderizarCards(registros) {
 function renderizarGraficos(registros) {
     const rotulos = registros.map(diaMes);
 
-    if (graficos.temperatura) graficos.temperatura.destroy();
-    if (graficos.chuva) graficos.chuva.destroy();
-
-    graficos.temperatura = new Chart(document.getElementById('graficoTemperatura'), {
+    desenhar('graficoTemperatura', {
         type: 'line',
         data: {
             labels: rotulos,
@@ -140,7 +145,7 @@ function renderizarGraficos(registros) {
         },
     });
 
-    graficos.chuva = new Chart(document.getElementById('graficoChuva'), {
+    desenhar('graficoChuva', {
         type: 'bar',
         data: {
             labels: rotulos,

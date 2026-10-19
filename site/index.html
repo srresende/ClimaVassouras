@@ -25,11 +25,18 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="stylesheet" href="css/estilo.css">
 
-    <!-- integrity: o navegador recusa o arquivo se o CDN servir algo diferente do 4.5.1 original. -->
-    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"
+    <!-- async: os dados não esperam o Chart.js; só os gráficos esperam (graficos.js).
+         integrity: o navegador recusa o arquivo se o CDN servir algo diferente do 4.5.1 original. -->
+    <script async id="scriptChart" src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"
             integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ"
-            crossorigin="anonymous"></script>
+            crossorigin="anonymous" onerror="window.chartErro = true"></script>
     <script type="module" src="js/app.js"></script>
+    <!-- Baixa de uma vez os módulos que a aba Mês importa, em vez de um nível por vez. -->
+    <link rel="modulepreload" href="js/dados.js">
+    <link rel="modulepreload" href="js/mes.js">
+    <link rel="modulepreload" href="js/dom.js">
+    <link rel="modulepreload" href="js/graficos.js">
+    <link rel="modulepreload" href="js/metricas.js">
 </head>
 <body>
 
@@ -55,7 +62,8 @@
         <div id="mensagemErro" class="mensagem-erro oculto" role="alert">
             <svg class="icone" aria-hidden="true"><use href="img/icones.svg#circle-exclamation"/></svg>
             <h2>Não foi possível carregar os dados</h2>
-            <p>Tente recarregar a página em alguns instantes.</p>
+            <p>Verifique a conexão e tente de novo.</p>
+            <button type="button" id="tentarDeNovo" class="botao">Tentar de novo</button>
         </div>
 
         <div id="conteudo" class="pilha oculto">
@@ -269,8 +277,8 @@
             <!-- ABA CALENDÁRIO -->
             <div id="painel-calendario" class="pilha" role="tabpanel" aria-labelledby="aba-calendario" hidden>
                 <section class="painel calendario">
-                    <div id="gradeCalendario" class="calendario-rolagem" tabindex="0" aria-label="Calendário com rolagem"></div>
-                    <p id="infoCalendario" class="calendario-info" aria-live="polite"></p>
+                    <div id="gradeCalendario" class="calendario-rolagem"></div>
+                    <p id="infoCalendario" class="calendario-info"></p>
                     <div id="legendaCalendario" class="legenda"></div>
                 </section>
             </div>

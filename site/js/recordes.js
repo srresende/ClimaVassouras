@@ -1,16 +1,32 @@
+// @ts-check
 // Aba Recordes: extremos do período todo e de cada mês do calendário.
 
 import { NOMES_MESES, dataCompleta, extremo, formatarNumero } from './dados.js';
 import { card, linhaTabela } from './dom.js';
 
+/**
+ * @typedef {import('./dados.js').Registro} Registro
+ * @typedef {import('./dados.js').ResumoMensal} ResumoMensal
+ */
+
+/**
+ * @param {Registro | null} registro
+ * @param {'tempMax' | 'tempMin' | 'chuva'} campo
+ * @param {string} unidade
+ */
 function textoDia(registro, campo, unidade) {
     return registro ? `${formatarNumero(registro[campo], 1, unidade)} · ${dataCompleta(registro)}` : '—';
 }
 
+/** @param {ResumoMensal | null} resumo */
 function textoMes(resumo) {
     return resumo ? `${formatarNumero(resumo.chuva, 1, 'mm')} · ${resumo.ano}` : '—';
 }
 
+/**
+ * @param {Registro[]} registros
+ * @param {ResumoMensal[]} resumos
+ */
 export function renderizarRecordes(registros, resumos) {
     // Totais mensais só contam meses completos (um mês pela metade seria sempre "o mais seco").
     const completos = resumos.filter(r => r.completo);
