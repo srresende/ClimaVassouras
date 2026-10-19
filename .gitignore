@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Coleta: temporários, backups e logs locais
+*.tmp
+*_backup*.csv
+*.log
+
+# Cópia do CSV gerada no deploy (a fonte da verdade fica em dados/)
+site/clima_vassouras.csv
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store

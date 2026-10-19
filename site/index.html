@@ -44,7 +44,7 @@
                 <i class="fa-solid fa-circle-exclamation text-4xl mb-2 text-red-400"></i>
                 <h2 class="text-lg font-bold mb-1">Erro ao carregar o arquivo CSV</h2>
                 <p class="text-sm text-red-300">
-                    Certifique-se de que o arquivo <code class="bg-red-900/60 px-2 py-0.5 rounded text-amber-300">clima_vassouras_openmeteo.csv</code> está na mesma pasta do arquivo <code class="bg-red-900/60 px-2 py-0.5 rounded text-amber-300">index.html</code> e que a aplicação está rodando via servidor web local.
+                    Certifique-se de que o arquivo <code class="bg-red-900/60 px-2 py-0.5 rounded text-amber-300">clima_vassouras.csv</code> está na mesma pasta do arquivo <code class="bg-red-900/60 px-2 py-0.5 rounded text-amber-300">index.html</code> e que a aplicação está rodando via servidor web local.
                 </p>
             </div>
 
@@ -191,14 +191,14 @@
                 &copy; Dashboard Climático - Vassouras/RJ. Dados fornecidos via OpenMeteo.
             </p>
             <div class="flex items-center">
-                <img src="122277.jpg" alt="Salada Mista - Soluções Tecnológicas" class="h-10 w-auto rounded opacity-90 hover:opacity-100 transition-opacity">
+                <img src="img/logo-salada-mista.jpg" alt="Salada Mista - Soluções Tecnológicas" class="h-10 w-auto rounded opacity-90 hover:opacity-100 transition-opacity">
             </div>
         </div>
     </footer>
 
     <!-- SCRIPTS JS -->
     <script>
-        const CSV_FILE = 'clima_vassouras_openmeteo.csv';
+        const CSV_FILE = 'clima_vassouras.csv';
         let rawData = [];
         let tempChartInstance = null;
         let rainChartInstance = null;

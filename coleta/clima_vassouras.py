@@ -1,4 +1,5 @@
 import csv
+import sys
 import requests
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -7,10 +8,10 @@ LAT = -22.405
 LON = -43.663
 FUSO_HORARIO = "America/Sao_Paulo"
 
-PASTA = Path(r"D:\Projects\CapturaClima")
-ARQUIVO = PASTA / "clima_vassouras_openmeteo.csv"
-TEMPORARIO = PASTA / "clima_vassouras_openmeteo.tmp"
-BACKUP = PASTA / "clima_vassouras_openmeteo_backup_antes_correcao.csv"
+PASTA = Path(__file__).resolve().parent.parent / "dados"
+ARQUIVO = PASTA / "clima_vassouras.csv"
+TEMPORARIO = PASTA / "clima_vassouras.tmp"
+BACKUP = PASTA / "clima_vassouras_backup.csv"
 
 # None consulta automaticamente o dia anterior.
 # Para consultar uma data específica, use "2026-10-14" ou None
@@ -25,6 +26,27 @@ CABECALHO = [
     "vento_maximo_kmh",
     "origem",
 ]
+
+
+CAMPOS_NUMERICOS = [
+    "temperatura_minima",
+    "temperatura_maxima",
+    "chuva_mm",
+    "umidade_media",
+    "vento_maximo_kmh",
+]
+
+
+def formatar_numero(valor):
+    # Padrão brasileiro: vírgula decimal, sem zeros sobrando ("20,0" -> "20").
+    if isinstance(valor, str):
+        valor = valor.strip()
+        if not valor:
+            return ""
+        valor = float(valor.replace(",", "."))
+
+    texto = f"{float(valor):.2f}".rstrip("0").rstrip(".")
+    return texto.replace(".", ",")
 
 
 def normalizar_data(valor):
@@ -74,6 +96,8 @@ def ler_historico():
                 for campo in CABECALHO
             }
             registro["data"] = data
+            for campo in CAMPOS_NUMERICOS:
+                registro[campo] = formatar_numero(registro[campo])
             registros[data] = registro
 
     return registros
@@ -153,7 +177,7 @@ def buscar_dados(data):
                 "O histórico não será gravado."
             )
 
-        valores[campo] = lista[i]
+        valores[campo] = formatar_numero(lista[i])
 
     return valores
 
@@ -213,3 +237,5 @@ if __name__ == "__main__":
     ) as erro:
         print(f"ERRO: {erro}")
         print("Verifique o arquivo e o backup antes de tentar novamente.")
+        # Codigo diferente de zero avisa o .bat para nao publicar o CSV.
+        sys.exit(1)
