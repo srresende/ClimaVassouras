@@ -1,0 +1,14 @@
+# Configuração da coleta. Caminhos relativos a esta pasta.
+
+[local]
+nome = "Vassouras, RJ"
+latitude = -22.405
+longitude = -43.663
+fuso_horario = "America/Sao_Paulo"
+
+[coleta]
+arquivo_csv = "../dados/clima_vassouras.csv"
+# Primeira data buscada quando o CSV ainda não existe.
+inicio_historico = "2020-01-01"
+# Dias recentes rebuscados a cada execução, para pegar revisões da API.
+dias_revisao = 7

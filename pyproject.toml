@@ -1,0 +1,9 @@
+[project]
+name = "climavassouras"
+version = "0.2.0"
+description = "Coleta diária do clima de Vassouras (RJ) para o dashboard aberto"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["coleta"]
+testpaths = ["coleta/tests"]
