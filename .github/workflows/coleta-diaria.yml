@@ -1,0 +1,67 @@
+name: Coleta diária e publicação
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # 06:00 em Brasília
+  workflow_dispatch:
+  # Mudanças no site ou um CSV enviado pelo PC também republicam o site.
+  # (Pushes feitos pelo próprio workflow não disparam outra execução.)
+  push:
+    branches: [main]
+    paths: ["site/**", "dados/**"]
+
+concurrency:
+  group: coleta-publicacao
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Coletar e publicar o CSV
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bash scripts/publicar-csv.sh
+
+  publicar:
+    needs: coletar
+    # Publica depois de uma coleta bem-sucedida, ou direto num push.
+    if: ${{ !cancelled() && (needs.coletar.result == 'success' || needs.coletar.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      # ref: main pega o commit que a coleta acabou de enviar.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Copiar o CSV para o site
+        run: cp dados/clima_vassouras.csv site/
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v5
