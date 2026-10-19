@@ -4,519 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Climático - Vassouras/RJ</title>
+    <meta name="description" content="Temperatura, sensação térmica, chuva, umidade e vento em Vassouras (RJ), dia a dia desde 2020.">
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- FontAwesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/estilo.css">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+    <script type="module" src="js/app.js"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col justify-between">
+<body>
 
-    <div>
-        <!-- CABEÇALHO -->
-        <header class="bg-slate-800 border-b border-slate-700 shadow-lg sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-cloud-sun-rain text-amber-400 text-3xl"></i>
-                    <div>
-                        <h1 class="text-xl font-bold tracking-wide">Dashboard Climático</h1>
-                        <p class="text-xs text-slate-400">Vassouras, Rio de Janeiro</p>
-                    </div>
-                </div>
-
-                <!-- Status do Carregamento Automático -->
-                <div id="loadingStatus" class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-700 text-amber-400 border border-slate-600">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>Carregando dados locais...</span>
+    <header class="cabecalho">
+        <div class="conteiner">
+            <div class="marca">
+                <i class="fa-solid fa-cloud-sun-rain" aria-hidden="true"></i>
+                <div>
+                    <h1>Dashboard Climático</h1>
+                    <p>Vassouras, Rio de Janeiro</p>
                 </div>
             </div>
-        </header>
 
-        <!-- CONTEÚDO PRINCIPAL -->
-        <main class="max-w-7xl mx-auto px-4 mt-6 mb-10">
-
-            <!-- MENSAGEM DE ERRO -->
-            <div id="errorMessage" class="hidden bg-red-950/80 border border-red-700 text-red-200 rounded-xl p-6 text-center my-8 shadow-xl">
-                <i class="fa-solid fa-circle-exclamation text-4xl mb-2 text-red-400"></i>
-                <h2 class="text-lg font-bold mb-1">Erro ao carregar o arquivo CSV</h2>
-                <p class="text-sm text-red-300">
-                    Certifique-se de que o arquivo <code class="bg-red-900/60 px-2 py-0.5 rounded text-amber-300">clima_vassouras.csv</code> está na mesma pasta do arquivo <code class="bg-red-900/60 px-2 py-0.5 rounded text-amber-300">index.html</code> e que a aplicação está rodando via servidor web local.
-                </p>
+            <div id="seloDados" class="selo" role="status">
+                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                <span>Carregando dados...</span>
             </div>
+        </div>
+    </header>
 
-            <!-- DASHBOARD -->
-            <div id="dashboardContent" class="hidden space-y-6">
+    <main class="conteiner">
 
-                <!-- BARRA DE CONTROLE (FILTROS) -->
-                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 shadow-md">
-                    <div class="flex items-center gap-2 text-slate-300 font-semibold">
-                        <i class="fa-solid fa-filter text-amber-400"></i>
-                        <span>Filtrar Período:</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <select id="selectMonth" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5 focus:ring-amber-500 focus:border-amber-500 cursor-pointer"></select>
-                        <select id="selectYear" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5 focus:ring-amber-500 focus:border-amber-500 cursor-pointer"></select>
+        <div id="mensagemErro" class="mensagem-erro oculto" role="alert">
+            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+            <h2>Não foi possível carregar os dados</h2>
+            <p>Tente recarregar a página em alguns instantes.</p>
+        </div>
+
+        <div id="conteudo" class="pilha oculto">
+
+            <!-- FILTRO -->
+            <section class="painel filtro" aria-label="Período">
+                <div class="filtro-titulo">
+                    <i class="fa-solid fa-filter" aria-hidden="true"></i>
+                    <span>Filtrar período</span>
+                </div>
+                <div class="filtro-campos">
+                    <label class="campo" for="selecaoMes">Mês
+                        <select id="selecaoMes"></select>
+                    </label>
+                    <label class="campo" for="selecaoAno">Ano
+                        <select id="selecaoAno"></select>
+                    </label>
+                </div>
+                <p id="avisoParcial" class="aviso-parcial oculto"></p>
+            </section>
+
+            <!-- CARDS -->
+            <section id="cards" class="cards" aria-label="Indicadores do mês"></section>
+
+            <!-- GRÁFICOS -->
+            <section class="graficos">
+                <div class="painel grafico">
+                    <h2 class="titulo-secao">
+                        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                        Evolução Térmica Diária (°C)
+                    </h2>
+                    <div class="area-grafico">
+                        <canvas id="graficoTemperatura" role="img" aria-label="Temperaturas máxima e mínima de cada dia do mês"></canvas>
                     </div>
                 </div>
 
-                <!-- GRADE DE KPIS (10 INDICADORES) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    
-                    <!-- Média Temp. Mínima -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-cyan-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Média Temp. Mínima</p>
-                        <h3 id="kpiMinTemp" class="text-2xl font-bold text-cyan-400 mt-1">-- °C</h3>
-                    </div>
-
-                    <!-- Mínima Absoluta do Mês -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-blue-400">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Mínima do Mês</p>
-                        <h3 id="kpiAbsMinTemp" class="text-2xl font-bold text-blue-300 mt-1">-- °C</h3>
-                        <p id="kpiAbsMinDate" class="text-xs text-slate-400 mt-1">--/--</p>
-                    </div>
-
-                    <!-- Média Temp. Máxima -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-orange-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Média Temp. Máxima</p>
-                        <h3 id="kpiMaxTemp" class="text-2xl font-bold text-orange-400 mt-1">-- °C</h3>
-                    </div>
-
-                    <!-- Máxima Absoluta do Mês -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-rose-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Máxima do Mês</p>
-                        <h3 id="kpiAbsMaxTemp" class="text-2xl font-bold text-rose-400 mt-1">-- °C</h3>
-                        <p id="kpiAbsMaxDate" class="text-xs text-slate-400 mt-1">--/--</p>
-                    </div>
-
-                    <!-- Chuva Acumulada -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-blue-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Chuva Acumulada</p>
-                        <h3 id="kpiRainAcc" class="text-2xl font-bold text-blue-400 mt-1">-- mm</h3>
-                        <p id="kpiRainDays" class="text-xs text-slate-400 mt-1">-- dias com chuva</p>
-                    </div>
-
-                    <!-- Umidade Média -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-teal-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Umidade Média</p>
-                        <h3 id="kpiHumidity" class="text-2xl font-bold text-teal-400 mt-1">-- %</h3>
-                    </div>
-
-                    <!-- Dias quentes (> 28°C) -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-red-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Dias quentes (&gt; 28°C)</p>
-                        <h3 id="kpiHotDays" class="text-2xl font-bold text-red-500 mt-1">--</h3>
-                    </div>
-
-                    <!-- Dias frios (< 14°C) -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-sky-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Dias frios (&lt; 14°C)</p>
-                        <h3 id="kpiColdDays" class="text-2xl font-bold text-sky-400 mt-1">--</h3>
-                    </div>
-
-                    <!-- Amplitude Térmica Média -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-purple-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Amplitude Térmica</p>
-                        <h3 id="kpiAmplitude" class="text-2xl font-bold text-purple-400 mt-1">-- °C</h3>
-                    </div>
-
-                    <!-- Pico de Chuva Diária -->
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md border-l-4 border-l-indigo-500">
-                        <p class="text-xs text-slate-400 font-medium uppercase">Pico de Chuva Diária</p>
-                        <h3 id="kpiMaxRain" class="text-2xl font-bold text-indigo-400 mt-1">-- mm</h3>
-                    </div>
-
-                </div>
-
-                <!-- GRÁFICOS -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md">
-                        <h3 class="text-md font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-line text-amber-400"></i>
-                            Evolução Térmica Diária (°C)
-                        </h3>
-                        <div class="relative h-64">
-                            <canvas id="tempChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md">
-                        <h3 class="text-md font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-column text-amber-400"></i>
-                            Precipitação (mm) & Vento (km/h)
-                        </h3>
-                        <div class="relative h-64">
-                            <canvas id="rainChart"></canvas>
-                        </div>
+                <div class="painel grafico">
+                    <h2 class="titulo-secao">
+                        <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+                        Precipitação (mm) &amp; Vento (km/h)
+                    </h2>
+                    <div class="area-grafico">
+                        <canvas id="graficoChuva" role="img" aria-label="Chuva e vento máximo de cada dia do mês"></canvas>
                     </div>
                 </div>
+            </section>
 
-                <!-- TABELA DE DADOS -->
-                <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-md overflow-hidden">
-                    <div class="p-4 border-b border-slate-700">
-                        <h3 class="text-md font-semibold text-slate-200 flex items-center gap-2">
-                            <i class="fa-solid fa-table text-amber-400"></i>
-                            Registros do Mês Selecionado
-                        </h3>
-                    </div>
-                    <div class="overflow-x-auto max-h-80">
-                        <table class="w-full text-sm text-left text-slate-300">
-                            <thead class="text-xs uppercase bg-slate-900/80 sticky top-0 text-slate-400">
-                                <tr>
-                                    <th class="px-4 py-3">Data</th>
-                                    <th class="px-4 py-3">Mínima (°C)</th>
-                                    <th class="px-4 py-3">Máxima (°C)</th>
-                                    <th class="px-4 py-3">Chuva (mm)</th>
-                                    <th class="px-4 py-3">Umidade (%)</th>
-                                    <th class="px-4 py-3">Vento (km/h)</th>
-                                    <th class="px-4 py-3">Classificação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dataTableBody" class="divide-y divide-slate-700/50"></tbody>
-                        </table>
-                    </div>
+            <!-- TABELA -->
+            <section class="painel tabela">
+                <div class="tabela-topo">
+                    <h2 class="titulo-secao">
+                        <i class="fa-solid fa-table" aria-hidden="true"></i>
+                        <span id="tituloTabela">Registros do mês</span>
+                    </h2>
                 </div>
+                <div class="tabela-rolagem" tabindex="0" aria-label="Tabela com rolagem">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Data</th>
+                                <th scope="col">Condição</th>
+                                <th scope="col">Mínima</th>
+                                <th scope="col">Máxima</th>
+                                <th scope="col">Sensação mín.</th>
+                                <th scope="col">Sensação máx.</th>
+                                <th scope="col">Chuva</th>
+                                <th scope="col">Umidade</th>
+                                <th scope="col">Vento</th>
+                                <th scope="col">Classificação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoTabela"></tbody>
+                    </table>
+                </div>
+            </section>
 
-            </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
-    <!-- RODAPÉ COM LOGO -->
-    <footer class="bg-slate-950 border-t border-slate-800 py-6 mt-12">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p class="text-xs text-slate-500">
-                &copy; Dashboard Climático - Vassouras/RJ. Dados fornecidos via OpenMeteo.
+    <footer class="rodape">
+        <div class="conteiner">
+            <p>
+                &copy; Dashboard Climático - Vassouras/RJ.
+                Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
+                (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
             </p>
-            <div class="flex items-center">
-                <img src="img/logo-salada-mista.jpg" alt="Salada Mista - Soluções Tecnológicas" class="h-10 w-auto rounded opacity-90 hover:opacity-100 transition-opacity">
-            </div>
+            <img src="img/logo-salada-mista.jpg" alt="Salada Mista - Soluções Tecnológicas">
         </div>
     </footer>
 
-    <!-- SCRIPTS JS -->
-    <script>
-        const CSV_FILE = 'clima_vassouras.csv';
-        let rawData = [];
-        let tempChartInstance = null;
-        let rainChartInstance = null;
-
-        const monthsNames = [
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-        ];
-
-        document.addEventListener('DOMContentLoaded', autoLoadCSV);
-
-        async function autoLoadCSV() {
-            const statusEl = document.getElementById('loadingStatus');
-            try {
-                const cacheBuster = new Date().getTime();
-                const fileUrl = `${CSV_FILE}?v=${cacheBuster}`;
-
-                const response = await fetch(fileUrl, {
-                    cache: "no-store",
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-                
-                if (!response.ok) throw new Error('Arquivo não encontrado');
-                
-                const text = await response.text();
-                parseCSVText(text);
-
-                statusEl.className = "flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700";
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Dados atualizados carregados</span>';
-            } catch (err) {
-                console.error('Erro ao ler CSV local:', err);
-                statusEl.className = "flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-red-950 text-red-400 border border-red-700";
-                statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <span>Erro ao carregar CSV</span>';
-                
-                document.getElementById('errorMessage').classList.remove('hidden');
-            }
-        }
-
-        function parseNum(val) {
-            if (typeof val === 'number') return val;
-            if (!val) return 0;
-            let str = String(val).replace(',', '.').trim();
-            let parsed = parseFloat(str);
-            return isNaN(parsed) ? 0 : parsed;
-        }
-
-        function parseDate(val) {
-            if (val instanceof Date) return val;
-            if (!val) return null;
-            let str = String(val).trim();
-            // ISO (AAAA-MM-DD): monta a data no fuso local para não recuar um dia
-            let iso = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (iso) {
-                return new Date(parseInt(iso[1], 10), parseInt(iso[2], 10) - 1, parseInt(iso[3], 10));
-            }
-            let parts = str.split('/');
-            if (parts.length === 3) {
-                let day = parseInt(parts[0], 10);
-                let month = parseInt(parts[1], 10) - 1;
-                let year = parseInt(parts[2], 10);
-                return new Date(year, month, day);
-            }
-            let d = new Date(str);
-            return isNaN(d.getTime()) ? null : d;
-        }
-
-        function parseCSVText(text) {
-            const lines = text.split(/\r?\n/);
-            let parsedRows = [];
-
-            lines.forEach(line => {
-                if (!line.trim()) return;
-                let cols = line.split(';').map(c => c.replace(/^"|"$/g, '').trim());
-                
-                let d = parseDate(cols[0]);
-                if (d && !isNaN(d.getTime())) {
-                    parsedRows.push({
-                        date: d,
-                        minTemp: parseNum(cols[1]),
-                        maxTemp: parseNum(cols[2]),
-                        rain: parseNum(cols[3]),
-                        humidity: parseNum(cols[4]),
-                        windKmh: parseNum(cols[5])
-                    });
-                }
-            });
-
-            processData(parsedRows);
-        }
-
-        function processData(rows) {
-            // O CSV já traz o vento em km/h (wind_speed_unit=kmh na API)
-            rawData = rows.map(item => {
-                return {
-                    date: item.date,
-                    dateStr: item.date.toLocaleDateString('pt-BR'),
-                    year: item.date.getFullYear(),
-                    month: item.date.getMonth(),
-                    minTemp: item.minTemp,
-                    maxTemp: item.maxTemp,
-                    rain: item.rain,
-                    humidity: item.humidity,
-                    windKmh: item.windKmh
-                };
-            });
-
-            if (rawData.length > 0) {
-                document.getElementById('dashboardContent').classList.remove('hidden');
-                setupFilterDropdowns();
-                updateDashboard();
-            }
-        }
-
-        function setupFilterDropdowns() {
-            const years = [...new Set(rawData.map(d => d.year))].sort((a,b) => a - b);
-            const selectYear = document.getElementById('selectYear');
-            const selectMonth = document.getElementById('selectMonth');
-
-            selectYear.innerHTML = '';
-            years.forEach(y => {
-                selectYear.innerHTML += `<option value="${y}">${y}</option>`;
-            });
-
-            selectMonth.innerHTML = '';
-            monthsNames.forEach((m, idx) => {
-                selectMonth.innerHTML += `<option value="${idx}">${m}</option>`;
-            });
-
-            // Pega o Mês e Ano correntes do sistema
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth();
-
-            // Verifica se o ano/mês atuais existem nos dados do CSV
-            const yearExists = years.includes(currentYear);
-            const monthDataExists = rawData.some(d => d.year === currentYear && d.month === currentMonth);
-
-            if (yearExists && monthDataExists) {
-                selectYear.value = currentYear;
-                selectMonth.value = currentMonth;
-            } else {
-                // Fallback: seleciona o ano e mês do primeiro registro disponível
-                selectYear.value = rawData[0].year;
-                selectMonth.value = rawData[0].month;
-            }
-
-            selectYear.addEventListener('change', updateDashboard);
-            selectMonth.addEventListener('change', updateDashboard);
-        }
-
-        function updateDashboard() {
-            const selectedYear = parseInt(document.getElementById('selectYear').value);
-            const selectedMonth = parseInt(document.getElementById('selectMonth').value);
-
-            const filteredData = rawData.filter(d => d.year === selectedYear && d.month === selectedMonth);
-
-            if (filteredData.length === 0) {
-                return;
-            }
-
-            filteredData.sort((a, b) => a.date - b.date);
-
-            renderKPIs(filteredData);
-            renderCharts(filteredData);
-            renderTable(filteredData);
-        }
-
-        function renderKPIs(data) {
-            const total = data.length;
-
-            const avgMin = data.reduce((acc, d) => acc + d.minTemp, 0) / total;
-            const avgMax = data.reduce((acc, d) => acc + d.maxTemp, 0) / total;
-            const totalRain = data.reduce((acc, d) => acc + d.rain, 0);
-            const avgHumidity = data.reduce((acc, d) => acc + d.humidity, 0) / total;
-
-            let absMinObj = data.reduce((prev, curr) => (curr.minTemp < prev.minTemp ? curr : prev), data[0]);
-            let absMaxObj = data.reduce((prev, curr) => (curr.maxTemp > prev.maxTemp ? curr : prev), data[0]);
-
-            const rainDays = data.filter(d => d.rain > 0).length;
-            const hotDays = data.filter(d => d.maxTemp > 28).length;
-            const coldDays = data.filter(d => d.minTemp < 14).length;
-            const avgAmplitude = data.reduce((acc, d) => acc + (d.maxTemp - d.minTemp), 0) / total;
-            const maxRainDay = Math.max(...data.map(d => d.rain));
-
-            document.getElementById('kpiMinTemp').textContent = `${avgMin.toFixed(1)} °C`;
-            document.getElementById('kpiMaxTemp').textContent = `${avgMax.toFixed(1)} °C`;
-            
-            document.getElementById('kpiAbsMinTemp').textContent = `${absMinObj.minTemp.toFixed(1)} °C`;
-            document.getElementById('kpiAbsMinDate').textContent = `Dia ${absMinObj.dateStr.slice(0, 5)}`;
-            document.getElementById('kpiAbsMaxTemp').textContent = `${absMaxObj.maxTemp.toFixed(1)} °C`;
-            document.getElementById('kpiAbsMaxDate').textContent = `Dia ${absMaxObj.dateStr.slice(0, 5)}`;
-
-            document.getElementById('kpiRainAcc').textContent = `${totalRain.toFixed(1)} mm`;
-            document.getElementById('kpiRainDays').textContent = `${rainDays} dia(s) com chuva`;
-            document.getElementById('kpiHumidity').textContent = `${avgHumidity.toFixed(1)} %`;
-            document.getElementById('kpiHotDays').textContent = `${hotDays} dia(s)`;
-            document.getElementById('kpiColdDays').textContent = `${coldDays} dia(s)`;
-            document.getElementById('kpiAmplitude').textContent = `${avgAmplitude.toFixed(1)} °C`;
-            document.getElementById('kpiMaxRain').textContent = `${maxRainDay.toFixed(1)} mm`;
-        }
-
-        function renderCharts(data) {
-            const labels = data.map(d => d.dateStr.slice(0, 5));
-
-            if (tempChartInstance) tempChartInstance.destroy();
-            if (rainChartInstance) rainChartInstance.destroy();
-
-            const ctxTemp = document.getElementById('tempChart').getContext('2d');
-            tempChartInstance = new Chart(ctxTemp, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Temp. Máxima (°C)',
-                            data: data.map(d => d.maxTemp),
-                            borderColor: '#f97316',
-                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Temp. Mínima (°C)',
-                            data: data.map(d => d.minTemp),
-                            borderColor: '#06b6d4',
-                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#94a3b8' } } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
-                    }
-                }
-            });
-
-            const ctxRain = document.getElementById('rainChart').getContext('2d');
-            rainChartInstance = new Chart(ctxRain, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Chuva (mm)',
-                            data: data.map(d => d.rain),
-                            backgroundColor: '#3b82f6',
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Vento (km/h)',
-                            data: data.map(d => d.windKmh),
-                            type: 'line',
-                            borderColor: '#a855f7',
-                            borderWidth: 2,
-                            pointRadius: 2,
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#94a3b8' } } },
-                    scales: {
-                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                        y: { 
-                            type: 'linear', position: 'left',
-                            ticks: { color: '#94a3b8' }, grid: { color: '#334155' },
-                            title: { display: true, text: 'Chuva (mm)', color: '#94a3b8' }
-                        },
-                        y1: {
-                            type: 'linear', position: 'right',
-                            ticks: { color: '#a855f7' }, grid: { drawOnChartArea: false },
-                            title: { display: true, text: 'Vento (km/h)', color: '#a855f7' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function classifyDay(min, max) {
-            if (max > 28) {
-                return '<span class="px-2 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-semibold border border-red-500/30"><i class="fa-solid fa-sun mr-1"></i> Quente</span>';
-            } else if (min < 14) {
-                return '<span class="px-2 py-1 bg-sky-500/20 text-sky-400 rounded-full text-xs font-semibold border border-sky-500/30"><i class="fa-solid fa-snowflake mr-1"></i> Frio</span>';
-            }
-            return '<span class="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs font-semibold border border-emerald-500/30"><i class="fa-solid fa-smile mr-1"></i> Agradável</span>';
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('dataTableBody');
-            tbody.innerHTML = '';
-
-            data.forEach(d => {
-                const badge = classifyDay(d.minTemp, d.maxTemp);
-                const row = `
-                    <tr class="hover:bg-slate-700/40 transition-colors">
-                        <td class="px-4 py-3 font-medium text-slate-200">${d.dateStr}</td>
-                        <td class="px-4 py-3 ${d.minTemp < 14 ? 'text-sky-400 font-semibold' : ''}">${d.minTemp.toFixed(1)} °C</td>
-                        <td class="px-4 py-3 ${d.maxTemp > 28 ? 'text-red-400 font-semibold' : ''}">${d.maxTemp.toFixed(1)} °C</td>
-                        <td class="px-4 py-3">${d.rain.toFixed(1)} mm</td>
-                        <td class="px-4 py-3">${d.humidity.toFixed(0)} %</td>
-                        <td class="px-4 py-3">${d.windKmh.toFixed(1)} km/h</td>
-                        <td class="px-4 py-3">${badge}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-        }
-    </script>
 </body>
 </html>
