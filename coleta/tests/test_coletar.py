@@ -122,6 +122,68 @@ def test_gravar_e_ler_mantem_os_dados(tmp_path):
     assert not arquivo.with_suffix(".tmp").exists()
 
 
+def test_le_csv_recusa_numero_invalido_com_mensagem_clara(tmp_path):
+    arquivo = tmp_path / "invalido.csv"
+    arquivo.write_text(
+        "data;temperatura_minima;temperatura_maxima;chuva_mm;umidade_media;"
+        "vento_maximo_kmh;origem\n2026-04-01;abc;26,8;11,1;90;20,6;x\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ErroColeta, match="2026-04-01.*temperatura_minima"):
+        coletar.ler_csv(arquivo)
+
+
+# --- configuração ----------------------------------------------------------
+
+CONFIG_VALIDA = {
+    "latitude": "-22.405",
+    "longitude": "-43.663",
+    "fuso_horario": '"America/Sao_Paulo"',
+    "inicio_historico": '"2026-10-01"',
+    "dias_revisao": "7",
+}
+
+
+def escrever_config(tmp_path, **trocas):
+    valores = {**CONFIG_VALIDA, **trocas}
+    linhas = ["[local]"]
+    linhas += [f"{k} = {valores[k]}" for k in ("latitude", "longitude", "fuso_horario") if valores[k] is not None]
+    linhas += ["[coleta]", 'arquivo_csv = "dados/clima.csv"']
+    linhas += [f"{k} = {valores[k]}" for k in ("inicio_historico", "dias_revisao") if valores[k] is not None]
+    caminho = tmp_path / "config.toml"
+    caminho.write_text("\n".join(linhas) + "\n", encoding="utf-8")
+    return caminho
+
+
+def test_config_valida(tmp_path):
+    config = coletar.carregar_config(escrever_config(tmp_path))
+    assert config.dias_revisao == 7
+    assert config.inicio_historico == date(2026, 10, 1)
+    assert config.arquivo_csv == (tmp_path / "dados" / "clima.csv").resolve()
+
+
+@pytest.mark.parametrize(
+    "trocas, mensagem",
+    [
+        ({"dias_revisao": None}, "sem a chave"),
+        ({"dias_revisao": "0"}, "dias_revisao"),
+        ({"inicio_historico": '"01/10/2026"'}, "valor inválido"),
+        ({"fuso_horario": '"Lugar/Inexistente"'}, "valor inválido"),
+        ({"latitude": "-122.4"}, "fora do intervalo"),
+    ],
+)
+def test_config_invalida_vira_erro_de_coleta(tmp_path, trocas, mensagem):
+    with pytest.raises(ErroColeta, match=mensagem):
+        coletar.carregar_config(escrever_config(tmp_path, **trocas))
+
+
+def test_config_toml_malformado(tmp_path):
+    caminho = tmp_path / "config.toml"
+    caminho.write_text("[local\nlatitude = ", encoding="utf-8")
+    with pytest.raises(ErroColeta, match="config.toml inválido"):
+        coletar.carregar_config(caminho)
+
+
 # --- período ---------------------------------------------------------------
 
 

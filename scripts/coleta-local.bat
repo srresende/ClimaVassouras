@@ -36,7 +36,16 @@ cd /d "%CLONE%" || exit /b 2
 if not exist ".venv\Scripts\python.exe" (
     python -m venv .venv || exit /b 2
 )
+rem So instala quando o requirements.txt mudou: a coleta nao depende do PyPI todo dia.
+if not exist ".venv\requirements.instalado" goto instalar
+fc /b requirements.txt ".venv\requirements.instalado" >nul || goto instalar
+goto pronto
+
+:instalar
 ".venv\Scripts\python.exe" -m pip install -q -r requirements.txt || exit /b 2
+copy /y requirements.txt ".venv\requirements.instalado" >nul
+
+:pronto
 
 set /a TENTATIVA=0
 

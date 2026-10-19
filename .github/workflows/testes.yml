@@ -3,7 +3,12 @@ name: Testes
 on:
   push:
     branches: [main]
-    paths: ["coleta/**", "requirements*.txt", "pyproject.toml"]
+    paths:
+      - "coleta/**"
+      - "site/js/**"
+      - "testes/**"
+      - "requirements*.txt"
+      - "pyproject.toml"
   pull_request:
 
 permissions:
@@ -13,9 +18,9 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
           cache: pip
@@ -23,3 +28,15 @@ jobs:
       - run: pip install -r requirements-dev.txt
 
       - run: pytest
+
+  # Testes do dados.js do site com o executor de testes nativo do Node (sem dependências).
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+
+      - run: node --test "testes/*.test.mjs"

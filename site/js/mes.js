@@ -1,8 +1,8 @@
 // Aba Mês: 10 cards, dois gráficos e a tabela do mês selecionado.
 
 import {
-    LIMITES, classificarDia, condicaoDoCodigo, dataCompleta, diaMes,
-    extremo, formatarNumero, media, total,
+    LIMITES, classificarDia, condicaoDoCodigo, contar, dataCompleta, diaMes,
+    ehFrio, ehQuente, extremo, formatarNumero, media, total,
 } from './dados.js';
 import { card, elemento, icone } from './dom.js';
 
@@ -74,16 +74,12 @@ const CARDS = [
     {
         titulo: `Dias quentes (> ${LIMITES.diaQuente}°C)`, cor: 'cor-vermelho',
         ajuda: `Dias com máxima acima de ${LIMITES.diaQuente} °C.`,
-        calcular: registros => ({
-            valor: `${registros.filter(r => r.tempMax !== null && r.tempMax > LIMITES.diaQuente).length} dia(s)`,
-        }),
+        calcular: registros => ({ valor: `${contar(registros, ehQuente)} dia(s)` }),
     },
     {
         titulo: `Dias frios (< ${LIMITES.diaFrio}°C)`, cor: 'cor-celeste',
         ajuda: `Dias com mínima abaixo de ${LIMITES.diaFrio} °C.`,
-        calcular: registros => ({
-            valor: `${registros.filter(r => r.tempMin !== null && r.tempMin < LIMITES.diaFrio).length} dia(s)`,
-        }),
+        calcular: registros => ({ valor: `${contar(registros, ehFrio)} dia(s)` }),
     },
 ];
 
@@ -206,10 +202,8 @@ function renderizarTabela(registros) {
         linha.append(celulaCondicao);
 
         linha.append(
-            elemento('td', registro.tempMin !== null && registro.tempMin < LIMITES.diaFrio ? 'frio' : '',
-                formatarNumero(registro.tempMin, 1, '°C')),
-            elemento('td', registro.tempMax !== null && registro.tempMax > LIMITES.diaQuente ? 'quente' : '',
-                formatarNumero(registro.tempMax, 1, '°C')),
+            elemento('td', ehFrio(registro) ? 'frio' : '', formatarNumero(registro.tempMin, 1, '°C')),
+            elemento('td', ehQuente(registro) ? 'quente' : '', formatarNumero(registro.tempMax, 1, '°C')),
             elemento('td', '', formatarNumero(registro.sensMin, 1, '°C')),
             elemento('td', '', formatarNumero(registro.sensMax, 1, '°C')),
             elemento('td', '', formatarNumero(registro.chuva, 1, 'mm')),

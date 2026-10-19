@@ -93,12 +93,17 @@ function atualizarSelo() {
 function configurarAbas() {
     el.abas.forEach((aba, indice) => {
         aba.addEventListener('click', () => selecionar({ aba: aba.dataset.aba }));
-        // Setas esquerda/direita trocam de aba, como pede o padrão de abas acessíveis.
+        // Setas, Home e End trocam de aba, como pede o padrão de abas acessíveis.
         aba.addEventListener('keydown', evento => {
-            const passo = { ArrowRight: 1, ArrowLeft: -1 }[evento.key];
-            if (!passo) return;
+            const destinos = {
+                ArrowRight: (indice + 1) % el.abas.length,
+                ArrowLeft: (indice - 1 + el.abas.length) % el.abas.length,
+                Home: 0,
+                End: el.abas.length - 1,
+            };
+            if (!Object.hasOwn(destinos, evento.key)) return;
             evento.preventDefault();
-            const proxima = el.abas.at((indice + passo) % el.abas.length);
+            const proxima = el.abas[destinos[evento.key]];
             proxima.focus();
             selecionar({ aba: proxima.dataset.aba });
         });
@@ -134,7 +139,8 @@ function lerUrl() {
     estado.ano = ultimo.ano;
     estado.mes = ultimo.mes;
 
-    if (ABAS[parametros.get('aba')]) estado.aba = parametros.get('aba');
+    // Object.hasOwn: "constructor" ou "__proto__" na URL não podem passar por aba.
+    if (Object.hasOwn(ABAS, parametros.get('aba'))) estado.aba = parametros.get('aba');
 
     const pedido = /^(\d{4})-(\d{2})$/.exec(parametros.get('mes') || '');
     if (pedido && anosComDados().includes(Number(pedido[1]))) {

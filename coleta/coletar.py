@@ -14,9 +14,12 @@ import csv
 import sys
 import time
 import tomllib
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from zoneinfo import ZoneInfo
+from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import requests
 
@@ -53,24 +56,58 @@ OBRIGATORIAS = [
 # Espera antes de cada nova tentativa, em segundos.
 ESPERAS = (5, 15, 45)
 
+# Um dia do CSV: coluna -> texto já formatado ("19,6"). Os registros são indexados pela data ISO.
+Registro = dict[str, str]
+Registros = dict[str, Registro]
+Esperar = Callable[[float], None]
+
 
 class ErroColeta(Exception):
     pass
 
 
-def carregar_config(caminho=CONFIG):
-    with open(caminho, "rb") as arquivo:
-        config = tomllib.load(arquivo)
+@dataclass(frozen=True)
+class Config:
+    latitude: float
+    longitude: float
+    fuso_horario: str
+    arquivo_csv: Path
+    inicio_historico: date
+    dias_revisao: int
 
-    csv_relativo = Path(config["coleta"]["arquivo_csv"])
-    config["coleta"]["arquivo_csv"] = (Path(caminho).parent / csv_relativo).resolve()
-    config["coleta"]["inicio_historico"] = date.fromisoformat(
-        config["coleta"]["inicio_historico"]
-    )
+
+def carregar_config(caminho: Path = CONFIG) -> Config:
+    try:
+        with open(caminho, "rb") as arquivo:
+            bruto = tomllib.load(arquivo)
+    except tomllib.TOMLDecodeError as erro:
+        raise ErroColeta(f"config.toml inválido: {erro}") from erro
+
+    try:
+        local, coleta = bruto["local"], bruto["coleta"]
+        config = Config(
+            latitude=float(local["latitude"]),
+            longitude=float(local["longitude"]),
+            fuso_horario=str(local["fuso_horario"]),
+            arquivo_csv=(Path(caminho).parent / coleta["arquivo_csv"]).resolve(),
+            inicio_historico=date.fromisoformat(coleta["inicio_historico"]),
+            dias_revisao=int(coleta["dias_revisao"]),
+        )
+        ZoneInfo(config.fuso_horario)
+    # ZoneInfoNotFoundError é subclasse de KeyError: precisa vir antes.
+    except (TypeError, ValueError, ZoneInfoNotFoundError) as erro:
+        raise ErroColeta(f"config.toml com valor inválido: {erro}") from erro
+    except KeyError as erro:
+        raise ErroColeta(f"config.toml sem a chave {erro}") from erro
+
+    if not (-90 <= config.latitude <= 90 and -180 <= config.longitude <= 180):
+        raise ErroColeta("config.toml: latitude ou longitude fora do intervalo.")
+    if config.dias_revisao < 1:
+        raise ErroColeta("config.toml: dias_revisao precisa ser 1 ou mais.")
     return config
 
 
-def formatar_numero(valor):
+def formatar_numero(valor: float | int | str | None) -> str:
     # Padrão brasileiro: vírgula decimal, sem zeros sobrando ("20,0" -> "20").
     if valor is None:
         return ""
@@ -86,7 +123,7 @@ def formatar_numero(valor):
     return texto.replace(".", ",")
 
 
-def normalizar_data(valor):
+def normalizar_data(valor: str | None) -> str:
     valor = (valor or "").strip()
 
     for formato in ("%Y-%m-%d", "%d/%m/%Y"):
@@ -98,21 +135,20 @@ def normalizar_data(valor):
     raise ErroColeta(f"Data inválida encontrada no CSV: {valor!r}")
 
 
-def ler_csv(arquivo):
-    registros = {}
+def ler_csv(arquivo: Path) -> Registros:
+    registros: Registros = {}
 
     if not arquivo.exists():
         return registros
 
+    # utf-8-sig já remove o BOM do início do arquivo.
     with arquivo.open("r", encoding="utf-8-sig", newline="") as entrada:
         leitor = csv.DictReader(entrada, delimiter=";")
 
         if not leitor.fieldnames:
             raise ErroColeta("O CSV está vazio ou sem cabeçalho.")
 
-        leitor.fieldnames = [
-            (nome or "").strip().lstrip("﻿") for nome in leitor.fieldnames
-        ]
+        leitor.fieldnames = [(nome or "").strip() for nome in leitor.fieldnames]
 
         faltantes = set(OBRIGATORIAS) - set(leitor.fieldnames)
         if faltantes:
@@ -132,13 +168,18 @@ def ler_csv(arquivo):
             registro = {campo: (linha.get(campo) or "").strip() for campo in CABECALHO}
             registro["data"] = chave
             for campo in VARIAVEIS:
-                registro[campo] = formatar_numero(registro[campo])
+                try:
+                    registro[campo] = formatar_numero(registro[campo])
+                except ValueError:
+                    raise ErroColeta(
+                        f"Número inválido no CSV em {chave}, coluna {campo}: {registro[campo]!r}"
+                    ) from None
             registros[chave] = registro
 
     return registros
 
 
-def gravar_csv(arquivo, registros):
+def gravar_csv(arquivo: Path, registros: Registros) -> None:
     arquivo.parent.mkdir(parents=True, exist_ok=True)
     temporario = arquivo.with_suffix(".tmp")
 
@@ -158,11 +199,13 @@ def gravar_csv(arquivo, registros):
         raise
 
 
-def hoje_local(fuso):
+def hoje_local(fuso: str) -> date:
     return datetime.now(ZoneInfo(fuso)).date()
 
 
-def periodo_rotina(registros, ontem, dias_revisao, inicio_historico):
+def periodo_rotina(
+    registros: Registros, ontem: date, dias_revisao: int, inicio_historico: date
+) -> tuple[date, date]:
     # Do dia seguinte ao último registro (ou dos últimos dias, o que vier antes).
     if not registros:
         return inicio_historico, ontem
@@ -172,12 +215,14 @@ def periodo_rotina(registros, ontem, dias_revisao, inicio_historico):
     return min(ultimo + timedelta(days=1), revisao), ontem
 
 
-def requisitar(sessao, parametros, esperar=time.sleep):
+def requisitar(
+    sessao: requests.Session, parametros: dict[str, Any], esperar: Esperar = time.sleep
+) -> dict[str, Any]:
     for tentativa in range(len(ESPERAS) + 1):
         try:
             resposta = sessao.get(URL_ARCHIVE, params=parametros, timeout=120)
         except (requests.ConnectionError, requests.Timeout) as erro:
-            falha = erro
+            falha: Exception = erro
         else:
             if resposta.status_code == 429 or resposta.status_code >= 500:
                 falha = requests.HTTPError(
@@ -196,8 +241,10 @@ def requisitar(sessao, parametros, esperar=time.sleep):
         print(f"Falha na API ({falha}); nova tentativa em {espera} s.")
         esperar(espera)
 
+    raise AssertionError("inalcançável")
 
-def converter_resposta(dados):
+
+def converter_resposta(dados: dict[str, Any] | None) -> tuple[Registros, list[str]]:
     diario = (dados or {}).get("daily") or {}
     datas = diario.get("time") or []
 
@@ -205,8 +252,8 @@ def converter_resposta(dados):
         if len(diario.get(variavel) or []) != len(datas):
             raise ErroColeta(f"Variável ausente na resposta da API: {variavel}")
 
-    registros = {}
-    pendentes = []
+    registros: Registros = {}
+    pendentes: list[tuple[str, list[str]]] = []
 
     for i, chave in enumerate(datas):
         valores = {campo: diario[variavel][i] for campo, variavel in VARIAVEIS.items()}
@@ -223,27 +270,29 @@ def converter_resposta(dados):
                 f"Dados ausentes em {chave_pendente}: {', '.join(campos)}"
             )
 
-        registros[chave] = {
-            "data": chave,
-            **{campo: formatar_numero(valor) for campo, valor in valores.items()},
-            "origem": ORIGEM,
-        }
+        try:
+            formatados = {campo: formatar_numero(valor) for campo, valor in valores.items()}
+        except ValueError:
+            raise ErroColeta(f"Valor não numérico na resposta da API em {chave}.") from None
+
+        registros[chave] = {"data": chave, **formatados, "origem": ORIGEM}
 
     # Dias finais incompletos ainda não foram publicados pela API: ficam para depois.
     return registros, [chave for chave, _ in pendentes]
 
 
-def buscar(sessao, config, de, ate, esperar=time.sleep):
-    local = config["local"]
+def buscar(
+    sessao: requests.Session, config: Config, de: date, ate: date, esperar: Esperar = time.sleep
+) -> tuple[Registros, list[str]]:
     dados = requisitar(
         sessao,
         {
-            "latitude": local["latitude"],
-            "longitude": local["longitude"],
+            "latitude": config.latitude,
+            "longitude": config.longitude,
             "start_date": de.isoformat(),
             "end_date": ate.isoformat(),
             "daily": ",".join(VARIAVEIS.values()),
-            "timezone": local["fuso_horario"],
+            "timezone": config.fuso_horario,
             "wind_speed_unit": "kmh",
         },
         esperar,
@@ -251,7 +300,7 @@ def buscar(sessao, config, de, ate, esperar=time.sleep):
     return converter_resposta(dados)
 
 
-def mesclar(existentes, novos):
+def mesclar(existentes: Registros, novos: Registros) -> tuple[Registros, int, int]:
     registros = dict(existentes)
     incluidos = alterados = 0
 
@@ -266,11 +315,11 @@ def mesclar(existentes, novos):
     return registros, incluidos, alterados
 
 
-def numero(texto):
+def numero(texto: str) -> float | None:
     return float(texto.replace(",", ".")) if texto else None
 
 
-def validar(registros):
+def validar(registros: Registros) -> None:
     for chave, registro in registros.items():
         minima = numero(registro["temperatura_minima"])
         maxima = numero(registro["temperatura_maxima"])
@@ -284,7 +333,7 @@ def validar(registros):
             raise ErroColeta(f"Dias faltando no CSV entre {anterior} e {atual}.")
 
 
-def ler_argumentos(argv):
+def ler_argumentos(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--de", type=date.fromisoformat, help="data inicial (AAAA-MM-DD)")
     parser.add_argument("--ate", type=date.fromisoformat, help="data final (AAAA-MM-DD)")
@@ -292,24 +341,24 @@ def ler_argumentos(argv):
     return parser.parse_args(argv)
 
 
-def executar(argv=None, sessao=None, hoje=None, esperar=time.sleep):
+def executar(
+    argv: Sequence[str] | None = None,
+    sessao: requests.Session | None = None,
+    hoje: date | None = None,
+    esperar: Esperar = time.sleep,
+) -> None:
     argumentos = ler_argumentos(argv)
     config = carregar_config(argumentos.config)
-    arquivo = config["coleta"]["arquivo_csv"]
+    arquivo = config.arquivo_csv
 
-    ontem = (hoje or hoje_local(config["local"]["fuso_horario"])) - timedelta(days=1)
+    ontem = (hoje or hoje_local(config.fuso_horario)) - timedelta(days=1)
     existentes = ler_csv(arquivo)
 
     if argumentos.de or argumentos.ate:
-        de = argumentos.de or config["coleta"]["inicio_historico"]
+        de = argumentos.de or config.inicio_historico
         ate = min(argumentos.ate or ontem, ontem)
     else:
-        de, ate = periodo_rotina(
-            existentes,
-            ontem,
-            config["coleta"]["dias_revisao"],
-            config["coleta"]["inicio_historico"],
-        )
+        de, ate = periodo_rotina(existentes, ontem, config.dias_revisao, config.inicio_historico)
 
     if de > ate:
         raise ErroColeta(f"Período inválido: {de} a {ate}.")
@@ -331,7 +380,7 @@ def executar(argv=None, sessao=None, hoje=None, esperar=time.sleep):
     print(f"Arquivo: {arquivo}")
 
 
-def main():
+def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     try:
         executar()
