@@ -31,12 +31,12 @@ const CARDS = [
         calcular: cardExtremo('tempMax', 'max', '°C'),
     },
     {
-        titulo: 'Sensação térmica mínima', cor: 'cor-ciano-claro',
+        titulo: 'Mínima Sensação térmica', cor: 'cor-ciano-claro',
         ajuda: 'Como o corpo sentiu o momento mais frio, considerando umidade e vento.',
         calcular: cardExtremo('sensMin', 'min', '°C'),
     },
     {
-        titulo: 'Sensação térmica máxima', cor: 'cor-ambar',
+        titulo: 'Máxima Sensação térmica', cor: 'cor-ambar',
         ajuda: 'Como o corpo sentiu o momento mais quente, considerando umidade e vento.',
         calcular: cardExtremo('sensMax', 'max', '°C'),
     },
@@ -88,9 +88,9 @@ const CARDS = [
 ];
 
 const ETIQUETAS = {
-    quente: { texto: 'Quente', icone: 'fa-sun' },
-    frio: { texto: 'Frio', icone: 'fa-snowflake' },
-    agradavel: { texto: 'Agradável', icone: 'fa-face-smile' },
+    quente: { texto: 'Quente', icone: 'sun' },
+    frio: { texto: 'Frio', icone: 'snowflake' },
+    agradavel: { texto: 'Agradável', icone: 'face-smile' },
 };
 
 export function renderizarMes(registros) {

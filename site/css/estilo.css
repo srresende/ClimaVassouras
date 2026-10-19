@@ -10,7 +10,8 @@
     --texto-forte: #e2e8f0;
     --texto-medio: #cbd5e1;
     --texto-fraco: #94a3b8;
-    --texto-apagado: #64748b;
+    /* Texto secundário: o mais apagado que ainda passa 4,5:1 sobre --painel. */
+    --texto-apagado: #8b9ab0;
     --destaque: #fbbf24;
 
     --ok-fundo: #022c22;
@@ -59,6 +60,28 @@ h1, h2, h3, p {
     display: none !important;
 }
 
+/* Ícones do sprite img/icones.svg (Font Awesome Free). */
+.icone {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 1.25em;
+    height: 1em;
+    fill: currentColor;
+    vertical-align: -0.125em;
+}
+
+.girando {
+    animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .girando { animation: none; }
+}
+
 /* --- Cabeçalho ---------------------------------------------------------- */
 
 .cabecalho {
@@ -86,7 +109,7 @@ h1, h2, h3, p {
     gap: 12px;
 }
 
-.marca > i {
+.marca > .icone {
     color: var(--destaque);
     font-size: 1.875rem;
 }
@@ -137,6 +160,8 @@ h1, h2, h3, p {
 
 main.conteiner {
     flex: 1;
+    /* Reserva a altura da tela: o rodapé não pula quando os dados chegam. */
+    min-height: 100vh;
     margin-top: 24px;
     margin-bottom: 40px;
 }
@@ -162,7 +187,7 @@ main.conteiner {
     color: #fecaca;
 }
 
-.mensagem-erro i {
+.mensagem-erro .icone {
     font-size: 2.25rem;
     margin-bottom: 8px;
     color: var(--erro-texto);
@@ -249,7 +274,7 @@ main.conteiner {
     font-weight: 600;
 }
 
-.filtro-titulo i {
+.filtro-titulo .icone {
     color: var(--destaque);
 }
 
@@ -389,7 +414,7 @@ main.conteiner {
     color: var(--texto-forte);
 }
 
-.titulo-secao i {
+.titulo-secao .icone {
     color: var(--destaque);
 }
 
@@ -472,10 +497,8 @@ td.frio {
     font-weight: 600;
 }
 
-.condicao i {
-    width: 1.25em;
+.condicao .icone {
     margin-right: 6px;
-    text-align: center;
     color: var(--destaque);
 }
 
@@ -598,12 +621,30 @@ td.frio {
     border-top: 1px solid #1e293b;
 }
 
-.rodape .conteiner {
+.rodape-linha {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+}
+
+.sobre {
+    margin-bottom: 20px;
+    font-size: 0.8125rem;
+    color: var(--texto-fraco);
+}
+
+.sobre summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--texto-medio);
+}
+
+.sobre p {
+    max-width: 48rem;
+    margin-top: 8px;
+    font-size: 0.8125rem;
 }
 
 .rodape p {

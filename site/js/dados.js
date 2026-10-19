@@ -30,13 +30,13 @@ const OBRIGATORIAS = ['data', 'temperatura_minima', 'temperatura_maxima', 'chuva
 
 // Códigos WMO (weather_code) agrupados como no PRD.
 const CONDICOES = [
-    { codigos: [0, 1], texto: 'Ensolarado', icone: 'fa-sun' },
-    { codigos: [2], texto: 'Parcialmente nublado', icone: 'fa-cloud-sun' },
-    { codigos: [3], texto: 'Nublado', icone: 'fa-cloud' },
-    { codigos: [45, 48], texto: 'Nevoeiro', icone: 'fa-smog' },
-    { codigos: [51, 53, 55, 56, 57], texto: 'Garoa', icone: 'fa-cloud-rain' },
-    { codigos: [61, 63, 65, 66, 67, 80, 81, 82], texto: 'Chuva', icone: 'fa-cloud-showers-heavy' },
-    { codigos: [95, 96, 99], texto: 'Trovoada', icone: 'fa-cloud-bolt' },
+    { codigos: [0, 1], texto: 'Ensolarado', icone: 'sun' },
+    { codigos: [2], texto: 'Parcialmente nublado', icone: 'cloud-sun' },
+    { codigos: [3], texto: 'Nublado', icone: 'cloud' },
+    { codigos: [45, 48], texto: 'Nevoeiro', icone: 'smog' },
+    { codigos: [51, 53, 55, 56, 57], texto: 'Garoa', icone: 'cloud-rain' },
+    { codigos: [61, 63, 65, 66, 67, 80, 81, 82], texto: 'Chuva', icone: 'cloud-showers-heavy' },
+    { codigos: [95, 96, 99], texto: 'Trovoada', icone: 'cloud-bolt' },
 ];
 
 export async function carregarRegistros() {
@@ -94,7 +94,7 @@ function lerNumero(valor) {
 export function condicaoDoCodigo(codigo) {
     if (codigo === null) return null;
     return CONDICOES.find(grupo => grupo.codigos.includes(codigo))
-        || { texto: 'Outra', icone: 'fa-circle-question' };
+        || { texto: 'Outra', icone: 'circle-question' };
 }
 
 export function classificarDia(registro) {

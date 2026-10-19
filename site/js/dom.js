@@ -7,10 +7,17 @@ export function elemento(tag, classe, texto) {
     return el;
 }
 
+const SVG = 'http://www.w3.org/2000/svg';
+
+// Ícone do sprite img/icones.svg (nome sem prefixo, ex.: 'sun').
 export function icone(nome) {
-    const el = elemento('i', `fa-solid ${nome}`);
-    el.setAttribute('aria-hidden', 'true');
-    return el;
+    const svg = document.createElementNS(SVG, 'svg');
+    svg.setAttribute('class', 'icone');
+    svg.setAttribute('aria-hidden', 'true');
+    const uso = document.createElementNS(SVG, 'use');
+    uso.setAttribute('href', `img/icones.svg#${nome}`);
+    svg.append(uso);
+    return svg;
 }
 
 export function card({ titulo, cor, valor, detalhe, ajuda }) {

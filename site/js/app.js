@@ -8,6 +8,7 @@ import { renderizarAno } from './ano.js';
 import { renderizarComparar } from './comparar.js';
 import { renderizarRecordes } from './recordes.js';
 import { OPCOES_METRICA, renderizarCalendario } from './calendario.js';
+import { icone } from './dom.js';
 
 // O dado de ontem chega toda manhã; acima disto o selo avisa atraso.
 const DIAS_ATE_ATRASO = 2;
@@ -48,7 +49,7 @@ async function iniciar() {
         if (estado.registros.length === 0) throw new Error('CSV sem registros');
     } catch (erro) {
         console.error('Erro ao ler o CSV:', erro);
-        mostrarSelo('erro', 'fa-triangle-exclamation', 'Erro ao carregar os dados');
+        mostrarSelo('erro', 'triangle-exclamation', 'Erro ao carregar os dados');
         el.erro.classList.remove('oculto');
         return;
     }
@@ -68,13 +69,10 @@ async function iniciar() {
 }
 
 function mostrarSelo(tipo, nomeIcone, texto) {
-    const icone = document.createElement('i');
-    icone.className = `fa-solid ${nomeIcone}`;
-    icone.setAttribute('aria-hidden', 'true');
     const rotulo = document.createElement('span');
     rotulo.textContent = texto;
     el.selo.className = `selo ${tipo}`;
-    el.selo.replaceChildren(icone, rotulo);
+    el.selo.replaceChildren(icone(nomeIcone), rotulo);
 }
 
 function atualizarSelo() {
@@ -84,9 +82,9 @@ function atualizarSelo() {
     const atraso = Math.round((inicioHoje - Date.UTC(ultimo.ano, ultimo.mes, ultimo.dia)) / 864e5);
 
     if (atraso > DIAS_ATE_ATRASO) {
-        mostrarSelo('alerta', 'fa-clock', `Dados atrasados · último: ${dataCompleta(ultimo)}`);
+        mostrarSelo('alerta', 'clock', `Dados atrasados · último: ${dataCompleta(ultimo)}`);
     } else {
-        mostrarSelo('ok', 'fa-circle-check', `Último dado: ${dataCompleta(ultimo)}`);
+        mostrarSelo('ok', 'circle-check', `Último dado: ${dataCompleta(ultimo)}`);
     }
 }
 

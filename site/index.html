@@ -5,8 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Climático - Vassouras/RJ</title>
     <meta name="description" content="Temperatura, sensação térmica, chuva, umidade e vento em Vassouras (RJ), dia a dia desde 2020.">
+    <meta name="theme-color" content="#1e293b">
+    <link rel="canonical" href="https://climavassouras.saladamista.com.br/">
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Pré-visualização de links (WhatsApp, redes sociais) -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:site_name" content="Dashboard Climático - Vassouras/RJ">
+    <meta property="og:title" content="Dashboard Climático - Vassouras/RJ">
+    <meta property="og:description" content="Temperatura, sensação térmica, chuva e recordes de Vassouras (RJ), dia a dia desde 2020.">
+    <meta property="og:url" content="https://climavassouras.saladamista.com.br/">
+    <meta property="og:image" content="https://climavassouras.saladamista.com.br/img/compartilhar.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Dashboard Climático de Vassouras, com cards de temperatura e chuva">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="stylesheet" href="css/estilo.css">
 
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
@@ -17,7 +33,7 @@
     <header class="cabecalho">
         <div class="conteiner">
             <div class="marca">
-                <i class="fa-solid fa-cloud-sun-rain" aria-hidden="true"></i>
+                <svg class="icone" aria-hidden="true"><use href="img/icones.svg#cloud-sun-rain"/></svg>
                 <div>
                     <h1>Dashboard Climático</h1>
                     <p>Vassouras, Rio de Janeiro</p>
@@ -25,7 +41,7 @@
             </div>
 
             <div id="seloDados" class="selo" role="status">
-                <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+                <svg class="icone girando" aria-hidden="true"><use href="img/icones.svg#spinner"/></svg>
                 <span>Carregando dados...</span>
             </div>
         </div>
@@ -34,7 +50,7 @@
     <main class="conteiner">
 
         <div id="mensagemErro" class="mensagem-erro oculto" role="alert">
-            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+            <svg class="icone" aria-hidden="true"><use href="img/icones.svg#circle-exclamation"/></svg>
             <h2>Não foi possível carregar os dados</h2>
             <p>Tente recarregar a página em alguns instantes.</p>
         </div>
@@ -44,26 +60,26 @@
             <!-- ABAS -->
             <nav class="abas" role="tablist" aria-label="Visões do painel">
                 <button type="button" role="tab" id="aba-mes" data-aba="mes" aria-controls="painel-mes" aria-selected="true">
-                    <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Mês
+                    <svg class="icone" aria-hidden="true"><use href="img/icones.svg#calendar-day"/></svg> Mês
                 </button>
                 <button type="button" role="tab" id="aba-ano" data-aba="ano" aria-controls="painel-ano" aria-selected="false" tabindex="-1">
-                    <i class="fa-solid fa-calendar" aria-hidden="true"></i> Ano
+                    <svg class="icone" aria-hidden="true"><use href="img/icones.svg#calendar"/></svg> Ano
                 </button>
                 <button type="button" role="tab" id="aba-comparar" data-aba="comparar" aria-controls="painel-comparar" aria-selected="false" tabindex="-1">
-                    <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> Comparar
+                    <svg class="icone" aria-hidden="true"><use href="img/icones.svg#scale-balanced"/></svg> Comparar
                 </button>
                 <button type="button" role="tab" id="aba-recordes" data-aba="recordes" aria-controls="painel-recordes" aria-selected="false" tabindex="-1">
-                    <i class="fa-solid fa-trophy" aria-hidden="true"></i> Recordes
+                    <svg class="icone" aria-hidden="true"><use href="img/icones.svg#trophy"/></svg> Recordes
                 </button>
                 <button type="button" role="tab" id="aba-calendario" data-aba="calendario" aria-controls="painel-calendario" aria-selected="false" tabindex="-1">
-                    <i class="fa-solid fa-table-cells" aria-hidden="true"></i> Calendário
+                    <svg class="icone" aria-hidden="true"><use href="img/icones.svg#table-cells"/></svg> Calendário
                 </button>
             </nav>
 
             <!-- FILTRO -->
             <section id="filtro" class="painel filtro" aria-label="Filtro">
                 <div class="filtro-titulo">
-                    <i class="fa-solid fa-filter" aria-hidden="true"></i>
+                    <svg class="icone" aria-hidden="true"><use href="img/icones.svg#filter"/></svg>
                     <span id="tituloFiltro">Filtrar período</span>
                 </div>
                 <div class="filtro-campos">
@@ -89,7 +105,7 @@
             <section class="graficos">
                 <div class="painel grafico">
                     <h2 class="titulo-secao">
-                        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                        <svg class="icone" aria-hidden="true"><use href="img/icones.svg#chart-line"/></svg>
                         Evolução Térmica Diária (°C)
                     </h2>
                     <div class="area-grafico">
@@ -99,7 +115,7 @@
 
                 <div class="painel grafico">
                     <h2 class="titulo-secao">
-                        <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+                        <svg class="icone" aria-hidden="true"><use href="img/icones.svg#chart-column"/></svg>
                         Precipitação (mm) &amp; Vento (km/h)
                     </h2>
                     <div class="area-grafico">
@@ -112,7 +128,7 @@
             <section class="painel tabela">
                 <div class="tabela-topo">
                     <h2 class="titulo-secao">
-                        <i class="fa-solid fa-table" aria-hidden="true"></i>
+                        <svg class="icone" aria-hidden="true"><use href="img/icones.svg#table"/></svg>
                         <span id="tituloTabela">Registros do mês</span>
                     </h2>
                 </div>
@@ -145,13 +161,13 @@
                 <section id="cardsAno" class="cards cards-4" aria-label="Resumo do ano"></section>
                 <section class="graficos">
                     <div class="painel grafico">
-                        <h2 class="titulo-secao"><i class="fa-solid fa-cloud-rain" aria-hidden="true"></i> Chuva por mês (mm)</h2>
+                        <h2 class="titulo-secao"><svg class="icone" aria-hidden="true"><use href="img/icones.svg#cloud-rain"/></svg> Chuva por mês (mm)</h2>
                         <div class="area-grafico">
                             <canvas id="graficoAnoChuva" role="img" aria-label="Chuva de cada mês do ano e a média 2020 a 2025"></canvas>
                         </div>
                     </div>
                     <div class="painel grafico">
-                        <h2 class="titulo-secao"><i class="fa-solid fa-temperature-half" aria-hidden="true"></i> Temperaturas médias por mês (°C)</h2>
+                        <h2 class="titulo-secao"><svg class="icone" aria-hidden="true"><use href="img/icones.svg#temperature-half"/></svg> Temperaturas médias por mês (°C)</h2>
                         <div class="area-grafico">
                             <canvas id="graficoAnoTemperatura" role="img" aria-label="Máxima e mínima médias de cada mês e a média 2020 a 2025"></canvas>
                         </div>
@@ -159,7 +175,7 @@
                 </section>
                 <section class="painel tabela">
                     <div class="tabela-topo">
-                        <h2 class="titulo-secao"><i class="fa-solid fa-table" aria-hidden="true"></i> Mês a mês</h2>
+                        <h2 class="titulo-secao"><svg class="icone" aria-hidden="true"><use href="img/icones.svg#table"/></svg> Mês a mês</h2>
                     </div>
                     <div class="tabela-rolagem tabela-rolagem-alta" tabindex="0" aria-label="Tabela com rolagem">
                         <table>
@@ -186,13 +202,13 @@
                 <p id="avisoComparar" class="nota oculto"></p>
                 <section class="graficos">
                     <div class="painel grafico">
-                        <h2 class="titulo-secao"><i class="fa-solid fa-cloud-rain" aria-hidden="true"></i> Chuva total no mês (mm)</h2>
+                        <h2 class="titulo-secao"><svg class="icone" aria-hidden="true"><use href="img/icones.svg#cloud-rain"/></svg> Chuva total no mês (mm)</h2>
                         <div class="area-grafico">
                             <canvas id="graficoCompararChuva" role="img" aria-label="Chuva do mês escolhido em cada ano e a média 2020 a 2025"></canvas>
                         </div>
                     </div>
                     <div class="painel grafico">
-                        <h2 class="titulo-secao"><i class="fa-solid fa-temperature-half" aria-hidden="true"></i> Mínima e máxima do mês (°C)</h2>
+                        <h2 class="titulo-secao"><svg class="icone" aria-hidden="true"><use href="img/icones.svg#temperature-half"/></svg> Mínima e máxima do mês (°C)</h2>
                         <div class="area-grafico">
                             <canvas id="graficoCompararTemperatura" role="img" aria-label="Menor mínima e maior máxima do mês escolhido em cada ano"></canvas>
                         </div>
@@ -200,7 +216,7 @@
                 </section>
                 <section class="painel tabela">
                     <div class="tabela-topo">
-                        <h2 class="titulo-secao"><i class="fa-solid fa-table" aria-hidden="true"></i> <span id="tituloComparar">O mês em cada ano</span></h2>
+                        <h2 class="titulo-secao"><svg class="icone" aria-hidden="true"><use href="img/icones.svg#table"/></svg> <span id="tituloComparar">O mês em cada ano</span></h2>
                     </div>
                     <div class="tabela-rolagem tabela-rolagem-alta" tabindex="0" aria-label="Tabela com rolagem">
                         <table>
@@ -227,7 +243,7 @@
                 <section id="cardsRecordes" class="cards cards-3" aria-label="Recordes do período"></section>
                 <section class="painel tabela">
                     <div class="tabela-topo">
-                        <h2 class="titulo-secao"><i class="fa-solid fa-table" aria-hidden="true"></i> Recordes de cada mês</h2>
+                        <h2 class="titulo-secao"><svg class="icone" aria-hidden="true"><use href="img/icones.svg#table"/></svg> Recordes de cada mês</h2>
                     </div>
                     <div class="tabela-rolagem tabela-rolagem-alta" tabindex="0" aria-label="Tabela com rolagem">
                         <table>
@@ -261,12 +277,29 @@
 
     <footer class="rodape">
         <div class="conteiner">
-            <p>
-                &copy; Dashboard Climático - Vassouras/RJ.
-                Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
-                (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
-            </p>
-            <img src="img/logo-salada-mista.jpg" alt="Salada Mista - Soluções Tecnológicas">
+            <details class="sobre">
+                <summary>Sobre os dados</summary>
+                <p>
+                    Os números vêm do arquivo histórico da Open-Meteo, calculado por modelos de reanálise
+                    (como o ERA5) que combinam observações de satélites e estações. São estimativas para a
+                    região de Vassouras, não medições de uma estação dentro do município.
+                </p>
+                <p>
+                    O painel é atualizado todo dia às 06:00 com os dados do dia anterior. Os últimos dias
+                    podem ser revisados pela fonte e mudar um pouco. A "média 2020–2025" é a média desses
+                    anos, não a normal climatológica oficial (1991–2020).
+                </p>
+            </details>
+            <div class="rodape-linha">
+                <p>
+                    &copy; Dashboard Climático - Vassouras/RJ.
+                    Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
+                    (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).
+                    Ícones: <a href="https://fontawesome.com/" target="_blank" rel="noopener">Font Awesome</a> (CC BY 4.0).
+                    <a href="https://github.com/srresende/ClimaVassouras" target="_blank" rel="noopener">Código aberto</a>.
+                </p>
+                <img src="img/logo-salada-mista-rodape.jpg" width="217" height="40" alt="Salada Mista - Soluções Tecnológicas">
+            </div>
         </div>
     </footer>
 
