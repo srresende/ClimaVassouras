@@ -138,6 +138,71 @@ function soma(valores) {
     return valores.reduce((acumulado, valor) => acumulado + valor, 0);
 }
 
+export function contar(registros, condicao) {
+    return registros.filter(condicao).length;
+}
+
+export const ehQuente = r => r.tempMax !== null && r.tempMax > LIMITES.diaQuente;
+export const ehFrio = r => r.tempMin !== null && r.tempMin < LIMITES.diaFrio;
+
+// --- Resumos mensais e média de referência -----------------------------------
+
+// Anos completos usados como referência. Não é a normal climatológica oficial.
+export const ANOS_REFERENCIA = { inicio: 2020, fim: 2025 };
+export const NOME_REFERENCIA = `média ${ANOS_REFERENCIA.inicio}–${ANOS_REFERENCIA.fim}`;
+
+// Um resumo por mês com dados, em ordem cronológica.
+export function resumirMeses(registros) {
+    const grupos = new Map();
+    for (const registro of registros) {
+        const chave = `${registro.ano}-${registro.mes}`;
+        if (!grupos.has(chave)) grupos.set(chave, []);
+        grupos.get(chave).push(registro);
+    }
+
+    return [...grupos.values()].map(doMes => {
+        const { ano, mes } = doMes[0];
+        return {
+            ano,
+            mes,
+            dias: doMes.length,
+            completo: doMes.length === diasNoMes(ano, mes),
+            chuva: total(doMes, 'chuva'),
+            tempMinMedia: media(doMes, 'tempMin'),
+            tempMaxMedia: media(doMes, 'tempMax'),
+            quentes: contar(doMes, ehQuente),
+            frios: contar(doMes, ehFrio),
+            minimo: extremo(doMes, 'tempMin', 'min'),
+            maximo: extremo(doMes, 'tempMax', 'max'),
+        };
+    });
+}
+
+// Para cada mês do calendário, a média dos meses completos dos anos de referência.
+export function referenciaMensal(resumos) {
+    return NOMES_MESES.map((_, mes) => {
+        const base = resumos.filter(r => r.mes === mes && r.completo
+            && r.ano >= ANOS_REFERENCIA.inicio && r.ano <= ANOS_REFERENCIA.fim);
+        return {
+            mes,
+            anos: base.length,
+            chuva: media(base, 'chuva'),
+            tempMinMedia: media(base, 'tempMinMedia'),
+            tempMaxMedia: media(base, 'tempMaxMedia'),
+            quentes: media(base, 'quentes'),
+            frios: media(base, 'frios'),
+        };
+    });
+}
+
+// "+12%" / "−8%" em relação à referência.
+export function formatarVariacao(valor, referencia) {
+    if (valor === null || referencia === null || referencia === 0) return SEM_DADO;
+    const percentual = Math.round((valor / referencia - 1) * 100);
+    if (percentual === 0) return '0%';
+    return `${percentual > 0 ? '+' : '−'}${Math.abs(percentual)}%`;
+}
+
 // --- Formatação --------------------------------------------------------------
 
 const SEM_DADO = '—';

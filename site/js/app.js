@@ -1,21 +1,43 @@
-// Inicialização: carrega o CSV, monta o filtro e o selo do último dado.
+// Inicialização: carrega o CSV, monta abas e filtro, e guarda o estado na URL.
 
-import { NOMES_MESES, carregarRegistros, dataCompleta, diasNoMes } from './dados.js';
+import {
+    NOMES_MESES, carregarRegistros, dataCompleta, diasNoMes, referenciaMensal, resumirMeses,
+} from './dados.js';
 import { renderizarMes } from './mes.js';
+import { renderizarAno } from './ano.js';
+import { renderizarComparar } from './comparar.js';
+import { renderizarRecordes } from './recordes.js';
+import { OPCOES_METRICA, renderizarCalendario } from './calendario.js';
 
 // O dado de ontem chega toda manhã; acima disto o selo avisa atraso.
 const DIAS_ATE_ATRASO = 2;
 
-const estado = { registros: [], ano: null, mes: null };
+// Quais filtros cada aba usa.
+const ABAS = {
+    mes: { filtros: ['mes', 'ano'], titulo: 'Filtrar período' },
+    ano: { filtros: ['ano'], titulo: 'Escolher o ano' },
+    comparar: { filtros: ['mes', 'ano'], titulo: 'Escolher o mês (o ano fica em destaque)' },
+    recordes: { filtros: [], titulo: '' },
+    calendario: { filtros: ['ano', 'metrica'], titulo: 'Escolher o ano e a métrica' },
+};
+
+const estado = {
+    registros: [], resumos: [], referencia: [],
+    aba: 'mes', ano: null, mes: null, metrica: OPCOES_METRICA[0][0],
+};
 
 const el = {
     selo: document.getElementById('seloDados'),
     erro: document.getElementById('mensagemErro'),
     conteudo: document.getElementById('conteudo'),
+    filtro: document.getElementById('filtro'),
+    tituloFiltro: document.getElementById('tituloFiltro'),
     ano: document.getElementById('selecaoAno'),
     mes: document.getElementById('selecaoMes'),
+    metrica: document.getElementById('selecaoMetrica'),
     avisoParcial: document.getElementById('avisoParcial'),
     tituloTabela: document.getElementById('tituloTabela'),
+    abas: [...document.querySelectorAll('[role="tab"]')],
 };
 
 document.addEventListener('DOMContentLoaded', iniciar);
@@ -31,11 +53,18 @@ async function iniciar() {
         return;
     }
 
+    estado.resumos = resumirMeses(estado.registros);
+    estado.referencia = referenciaMensal(estado.resumos);
+
     atualizarSelo();
-    escolherPeriodoInicial();
-    el.ano.addEventListener('change', () => selecionar(Number(el.ano.value), estado.mes));
-    el.mes.addEventListener('change', () => selecionar(estado.ano, Number(el.mes.value)));
+    lerUrl();
+    configurarAbas();
+    el.ano.addEventListener('change', () => selecionar({ ano: Number(el.ano.value) }));
+    el.mes.addEventListener('change', () => selecionar({ mes: Number(el.mes.value) }));
+    el.metrica.addEventListener('change', () => selecionar({ metrica: el.metrica.value }));
+
     el.conteudo.classList.remove('oculto');
+    selecionar({});
 }
 
 function mostrarSelo(tipo, nomeIcone, texto) {
@@ -61,43 +90,86 @@ function atualizarSelo() {
     }
 }
 
-// --- Filtro de mês e ano -----------------------------------------------------
+// --- Abas ----------------------------------------------------------------------
+
+function configurarAbas() {
+    el.abas.forEach((aba, indice) => {
+        aba.addEventListener('click', () => selecionar({ aba: aba.dataset.aba }));
+        // Setas esquerda/direita trocam de aba, como pede o padrão de abas acessíveis.
+        aba.addEventListener('keydown', evento => {
+            const passo = { ArrowRight: 1, ArrowLeft: -1 }[evento.key];
+            if (!passo) return;
+            evento.preventDefault();
+            const proxima = el.abas.at((indice + passo) % el.abas.length);
+            proxima.focus();
+            selecionar({ aba: proxima.dataset.aba });
+        });
+    });
+}
+
+function mostrarAba() {
+    for (const aba of el.abas) {
+        const ativa = aba.dataset.aba === estado.aba;
+        aba.setAttribute('aria-selected', String(ativa));
+        aba.tabIndex = ativa ? 0 : -1;
+        document.getElementById(aba.getAttribute('aria-controls')).hidden = !ativa;
+    }
+}
+
+// --- Filtro --------------------------------------------------------------------
 
 function anosComDados() {
     return [...new Set(estado.registros.map(r => r.ano))];
 }
 
-function mesesComDados(ano) {
-    return [...new Set(estado.registros.filter(r => r.ano === ano).map(r => r.mes))];
+function mesesDisponiveis() {
+    // Na aba Comparar vale qualquer mês que exista em algum ano.
+    const base = estado.aba === 'comparar'
+        ? estado.resumos
+        : estado.resumos.filter(r => r.ano === estado.ano);
+    return [...new Set(base.map(r => r.mes))].sort((a, b) => a - b);
 }
 
-function escolherPeriodoInicial() {
-    // ?mes=2026-10 na URL tem prioridade; senão, o mês do último dado.
-    const pedido = new URLSearchParams(location.search).get('mes');
-    const encontrado = /^(\d{4})-(\d{2})$/.exec(pedido || '');
-    if (encontrado) {
-        const ano = Number(encontrado[1]);
-        const mes = Number(encontrado[2]) - 1;
-        if (mesesComDados(ano).includes(mes)) {
-            selecionar(ano, mes);
-            return;
-        }
+function lerUrl() {
+    const parametros = new URLSearchParams(location.search);
+    const ultimo = estado.registros.at(-1);
+    estado.ano = ultimo.ano;
+    estado.mes = ultimo.mes;
+
+    if (ABAS[parametros.get('aba')]) estado.aba = parametros.get('aba');
+
+    const pedido = /^(\d{4})-(\d{2})$/.exec(parametros.get('mes') || '');
+    if (pedido && anosComDados().includes(Number(pedido[1]))) {
+        estado.ano = Number(pedido[1]);
+        estado.mes = Number(pedido[2]) - 1;
     }
 
-    const ultimo = estado.registros.at(-1);
-    selecionar(ultimo.ano, ultimo.mes);
+    if (OPCOES_METRICA.some(([chave]) => chave === parametros.get('metrica'))) {
+        estado.metrica = parametros.get('metrica');
+    }
 }
 
-function selecionar(ano, mes) {
-    const meses = mesesComDados(ano);
-    // Ao trocar de ano, mantém o mês se ele tiver dados; senão, o último disponível.
-    estado.ano = ano;
-    estado.mes = meses.includes(mes) ? mes : meses.at(-1);
+function selecionar(mudancas) {
+    Object.assign(estado, mudancas);
+
+    // Ao trocar de ano ou de aba, mantém o mês se ele tiver dados; senão, o último disponível.
+    const meses = mesesDisponiveis();
+    if (!meses.includes(estado.mes)) estado.mes = meses.at(-1);
+
+    const filtros = ABAS[estado.aba].filtros;
+    el.filtro.classList.toggle('oculto', filtros.length === 0);
+    el.tituloFiltro.textContent = ABAS[estado.aba].titulo;
+    for (const nome of ['ano', 'mes', 'metrica']) {
+        el[nome].closest('.campo').classList.toggle('oculto', !filtros.includes(nome));
+    }
 
     preencherOpcoes(el.ano, anosComDados().map(a => [a, a]), estado.ano);
     preencherOpcoes(el.mes, meses.map(m => [m, NOMES_MESES[m]]), estado.mes);
+    preencherOpcoes(el.metrica, OPCOES_METRICA, estado.metrica);
+
+    mostrarAba();
     gravarNaUrl();
-    atualizarMes();
+    renderizarAbaAtual();
 }
 
 function preencherOpcoes(select, opcoes, selecionado) {
@@ -105,22 +177,35 @@ function preencherOpcoes(select, opcoes, selecionado) {
 }
 
 function gravarNaUrl() {
-    const parametros = new URLSearchParams(location.search);
-    parametros.set('aba', 'mes');
+    const parametros = new URLSearchParams();
+    parametros.set('aba', estado.aba);
     parametros.set('mes', `${estado.ano}-${String(estado.mes + 1).padStart(2, '0')}`);
+    if (estado.aba === 'calendario') parametros.set('metrica', estado.metrica);
     history.replaceState(null, '', `?${parametros}`);
 }
 
-function atualizarMes() {
-    const doMes = estado.registros.filter(r => r.ano === estado.ano && r.mes === estado.mes);
-    const totalDias = diasNoMes(estado.ano, estado.mes);
-    const nome = `${NOMES_MESES[estado.mes]} de ${estado.ano}`;
+// --- Renderização -----------------------------------------------------------
 
-    el.tituloTabela.textContent = `Registros de ${nome}`;
-    el.avisoParcial.textContent = doMes.length < totalDias
-        ? `Mês parcial: ${doMes.length} de ${totalDias} dias com dados.`
-        : '';
-    el.avisoParcial.classList.toggle('oculto', doMes.length >= totalDias);
+function renderizarAbaAtual() {
+    const { aba, ano, mes } = estado;
+    el.avisoParcial.classList.add('oculto');
 
-    renderizarMes(doMes);
+    if (aba === 'mes') {
+        const doMes = estado.registros.filter(r => r.ano === ano && r.mes === mes);
+        const totalDias = diasNoMes(ano, mes);
+        el.tituloTabela.textContent = `Registros de ${NOMES_MESES[mes]} de ${ano}`;
+        if (doMes.length < totalDias) {
+            el.avisoParcial.textContent = `Mês parcial: ${doMes.length} de ${totalDias} dias com dados.`;
+            el.avisoParcial.classList.remove('oculto');
+        }
+        renderizarMes(doMes);
+    } else if (aba === 'ano') {
+        renderizarAno(ano, estado.resumos, estado.referencia);
+    } else if (aba === 'comparar') {
+        renderizarComparar(mes, ano, estado.resumos, estado.referencia);
+    } else if (aba === 'recordes') {
+        renderizarRecordes(estado.registros, estado.resumos);
+    } else if (aba === 'calendario') {
+        renderizarCalendario(estado.registros, ano, estado.metrica);
+    }
 }

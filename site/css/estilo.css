@@ -178,6 +178,58 @@ main.conteiner {
     color: #fca5a5;
 }
 
+/* --- Abas --------------------------------------------------------------- */
+
+.abas {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 4px;
+    background: var(--painel);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    scrollbar-width: thin;
+}
+
+.abas [role="tab"] {
+    flex: 1 1 0;
+    min-width: max-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--texto-fraco);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.abas [role="tab"]:hover {
+    color: var(--texto-forte);
+    background: rgba(51, 65, 85, 0.5);
+}
+
+.abas [role="tab"][aria-selected="true"] {
+    color: var(--fundo);
+    background: var(--destaque);
+}
+
+.abas [role="tab"]:focus-visible {
+    outline: 2px solid var(--destaque);
+    outline-offset: 2px;
+}
+
+.nota {
+    font-size: 0.8125rem;
+    color: var(--texto-fraco);
+}
+
 /* --- Filtro ------------------------------------------------------------- */
 
 .filtro {
@@ -255,6 +307,14 @@ main.conteiner {
 @media (min-width: 1024px) {
     .cards {
         grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .cards.cards-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .cards.cards-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -388,6 +448,15 @@ tbody tr:hover {
     background: rgba(51, 65, 85, 0.4);
 }
 
+tbody tr.destaque {
+    background: rgba(251, 191, 36, 0.08);
+    box-shadow: inset 3px 0 0 var(--destaque);
+}
+
+.tabela-rolagem.tabela-rolagem-alta {
+    max-height: none;
+}
+
 td.data {
     font-weight: 500;
     color: var(--texto-forte);
@@ -424,6 +493,101 @@ td.frio {
 .etiqueta.quente { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
 .etiqueta.frio { background: rgba(14, 165, 233, 0.2); color: #38bdf8; border-color: rgba(14, 165, 233, 0.3); }
 .etiqueta.agradavel { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+
+/* --- Calendário --------------------------------------------------------- */
+
+.calendario {
+    padding: 16px;
+}
+
+.calendario-rolagem {
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.calendario-grade {
+    --celula: 13px;
+    display: grid;
+    grid-template-rows: 18px repeat(7, var(--celula));
+    grid-auto-columns: var(--celula);
+    grid-template-columns: 32px;
+    gap: 3px;
+    width: max-content;
+}
+
+@media (min-width: 1024px) {
+    .calendario-grade {
+        --celula: 16px;
+    }
+}
+
+.calendario-celula {
+    width: var(--celula);
+    height: var(--celula);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.calendario-celula:hover {
+    outline: 2px solid var(--texto);
+    outline-offset: 1px;
+}
+
+.calendario-celula.vazia,
+.legenda-amostra.vazia {
+    background: transparent;
+    border: 1px dashed var(--borda);
+    cursor: default;
+}
+
+.calendario-celula.vazia:hover {
+    outline: none;
+}
+
+.calendario-mes,
+.calendario-dia-semana {
+    font-size: 0.6875rem;
+    line-height: var(--celula);
+    color: var(--texto-fraco);
+    white-space: nowrap;
+}
+
+.calendario-mes {
+    grid-row: 1;
+    line-height: 18px;
+}
+
+.calendario-dia-semana {
+    grid-column: 1;
+}
+
+.calendario-info {
+    margin-top: 12px;
+    min-height: 1.5em;
+    font-size: 0.875rem;
+    color: var(--texto-medio);
+}
+
+.legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--texto-fraco);
+}
+
+.legenda-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legenda-amostra {
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+}
 
 /* --- Rodapé ------------------------------------------------------------- */
 

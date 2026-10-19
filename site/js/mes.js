@@ -4,6 +4,7 @@ import {
     LIMITES, classificarDia, condicaoDoCodigo, dataCompleta, diaMes,
     extremo, formatarNumero, media, total,
 } from './dados.js';
+import { card, elemento, icone } from './dom.js';
 
 const graficos = { temperatura: null, chuva: null };
 
@@ -98,32 +99,9 @@ export function renderizarMes(registros) {
     renderizarTabela(registros);
 }
 
-function elemento(tag, classe, texto) {
-    const el = document.createElement(tag);
-    if (classe) el.className = classe;
-    if (texto !== undefined) el.textContent = texto;
-    return el;
-}
-
-function icone(nome) {
-    const el = elemento('i', `fa-solid ${nome}`);
-    el.setAttribute('aria-hidden', 'true');
-    return el;
-}
-
 function renderizarCards(registros) {
-    const fragmento = document.createDocumentFragment();
-
-    for (const card of CARDS) {
-        const { valor, detalhe } = card.calcular(registros);
-        const caixa = elemento('div', `painel card ${card.cor}`);
-        caixa.append(elemento('p', 'card-titulo', card.titulo), elemento('p', 'card-valor', valor));
-        if (detalhe) caixa.append(elemento('p', 'card-detalhe', detalhe));
-        caixa.append(elemento('p', 'card-ajuda', card.ajuda));
-        fragmento.append(caixa);
-    }
-
-    document.getElementById('cards').replaceChildren(fragmento);
+    const cards = CARDS.map(definicao => card({ ...definicao, ...definicao.calcular(registros) }));
+    document.getElementById('cards').replaceChildren(...cards);
 }
 
 function renderizarGraficos(registros) {

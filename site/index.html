@@ -41,11 +41,30 @@
 
         <div id="conteudo" class="pilha oculto">
 
+            <!-- ABAS -->
+            <nav class="abas" role="tablist" aria-label="Visões do painel">
+                <button type="button" role="tab" id="aba-mes" data-aba="mes" aria-controls="painel-mes" aria-selected="true">
+                    <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Mês
+                </button>
+                <button type="button" role="tab" id="aba-ano" data-aba="ano" aria-controls="painel-ano" aria-selected="false" tabindex="-1">
+                    <i class="fa-solid fa-calendar" aria-hidden="true"></i> Ano
+                </button>
+                <button type="button" role="tab" id="aba-comparar" data-aba="comparar" aria-controls="painel-comparar" aria-selected="false" tabindex="-1">
+                    <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> Comparar
+                </button>
+                <button type="button" role="tab" id="aba-recordes" data-aba="recordes" aria-controls="painel-recordes" aria-selected="false" tabindex="-1">
+                    <i class="fa-solid fa-trophy" aria-hidden="true"></i> Recordes
+                </button>
+                <button type="button" role="tab" id="aba-calendario" data-aba="calendario" aria-controls="painel-calendario" aria-selected="false" tabindex="-1">
+                    <i class="fa-solid fa-table-cells" aria-hidden="true"></i> Calendário
+                </button>
+            </nav>
+
             <!-- FILTRO -->
-            <section class="painel filtro" aria-label="Período">
+            <section id="filtro" class="painel filtro" aria-label="Filtro">
                 <div class="filtro-titulo">
                     <i class="fa-solid fa-filter" aria-hidden="true"></i>
-                    <span>Filtrar período</span>
+                    <span id="tituloFiltro">Filtrar período</span>
                 </div>
                 <div class="filtro-campos">
                     <label class="campo" for="selecaoMes">Mês
@@ -54,11 +73,16 @@
                     <label class="campo" for="selecaoAno">Ano
                         <select id="selecaoAno"></select>
                     </label>
+                    <label class="campo oculto" for="selecaoMetrica">Métrica
+                        <select id="selecaoMetrica"></select>
+                    </label>
                 </div>
                 <p id="avisoParcial" class="aviso-parcial oculto"></p>
             </section>
 
-            <!-- CARDS -->
+            <!-- ABA MÊS -->
+            <div id="painel-mes" class="pilha" role="tabpanel" aria-labelledby="aba-mes">
+
             <section id="cards" class="cards" aria-label="Indicadores do mês"></section>
 
             <!-- GRÁFICOS -->
@@ -112,6 +136,125 @@
                     </table>
                 </div>
             </section>
+
+            </div>
+
+            <!-- ABA ANO -->
+            <div id="painel-ano" class="pilha" role="tabpanel" aria-labelledby="aba-ano" hidden>
+                <p class="nota">Cada mês do ano comparado com a média dos mesmos meses de 2020 a 2025 (média dos últimos anos, não a normal climatológica oficial).</p>
+                <section id="cardsAno" class="cards cards-4" aria-label="Resumo do ano"></section>
+                <section class="graficos">
+                    <div class="painel grafico">
+                        <h2 class="titulo-secao"><i class="fa-solid fa-cloud-rain" aria-hidden="true"></i> Chuva por mês (mm)</h2>
+                        <div class="area-grafico">
+                            <canvas id="graficoAnoChuva" role="img" aria-label="Chuva de cada mês do ano e a média 2020 a 2025"></canvas>
+                        </div>
+                    </div>
+                    <div class="painel grafico">
+                        <h2 class="titulo-secao"><i class="fa-solid fa-temperature-half" aria-hidden="true"></i> Temperaturas médias por mês (°C)</h2>
+                        <div class="area-grafico">
+                            <canvas id="graficoAnoTemperatura" role="img" aria-label="Máxima e mínima médias de cada mês e a média 2020 a 2025"></canvas>
+                        </div>
+                    </div>
+                </section>
+                <section class="painel tabela">
+                    <div class="tabela-topo">
+                        <h2 class="titulo-secao"><i class="fa-solid fa-table" aria-hidden="true"></i> Mês a mês</h2>
+                    </div>
+                    <div class="tabela-rolagem tabela-rolagem-alta" tabindex="0" aria-label="Tabela com rolagem">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Mês</th>
+                                    <th scope="col">Chuva</th>
+                                    <th scope="col">Média 2020–2025</th>
+                                    <th scope="col">Diferença</th>
+                                    <th scope="col">Mínima média</th>
+                                    <th scope="col">Máxima média</th>
+                                    <th scope="col">Dias quentes</th>
+                                    <th scope="col">Dias frios</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpoTabelaAno"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ABA COMPARAR -->
+            <div id="painel-comparar" class="pilha" role="tabpanel" aria-labelledby="aba-comparar" hidden>
+                <p id="avisoComparar" class="nota oculto"></p>
+                <section class="graficos">
+                    <div class="painel grafico">
+                        <h2 class="titulo-secao"><i class="fa-solid fa-cloud-rain" aria-hidden="true"></i> Chuva total no mês (mm)</h2>
+                        <div class="area-grafico">
+                            <canvas id="graficoCompararChuva" role="img" aria-label="Chuva do mês escolhido em cada ano e a média 2020 a 2025"></canvas>
+                        </div>
+                    </div>
+                    <div class="painel grafico">
+                        <h2 class="titulo-secao"><i class="fa-solid fa-temperature-half" aria-hidden="true"></i> Mínima e máxima do mês (°C)</h2>
+                        <div class="area-grafico">
+                            <canvas id="graficoCompararTemperatura" role="img" aria-label="Menor mínima e maior máxima do mês escolhido em cada ano"></canvas>
+                        </div>
+                    </div>
+                </section>
+                <section class="painel tabela">
+                    <div class="tabela-topo">
+                        <h2 class="titulo-secao"><i class="fa-solid fa-table" aria-hidden="true"></i> <span id="tituloComparar">O mês em cada ano</span></h2>
+                    </div>
+                    <div class="tabela-rolagem tabela-rolagem-alta" tabindex="0" aria-label="Tabela com rolagem">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Ano</th>
+                                    <th scope="col">Chuva</th>
+                                    <th scope="col">vs. média 2020–2025</th>
+                                    <th scope="col">Mínima</th>
+                                    <th scope="col">Máxima</th>
+                                    <th scope="col">Dias quentes</th>
+                                    <th scope="col">Dias frios</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpoTabelaComparar"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ABA RECORDES -->
+            <div id="painel-recordes" class="pilha" role="tabpanel" aria-labelledby="aba-recordes" hidden>
+                <p id="periodoRecordes" class="nota"></p>
+                <section id="cardsRecordes" class="cards cards-3" aria-label="Recordes do período"></section>
+                <section class="painel tabela">
+                    <div class="tabela-topo">
+                        <h2 class="titulo-secao"><i class="fa-solid fa-table" aria-hidden="true"></i> Recordes de cada mês</h2>
+                    </div>
+                    <div class="tabela-rolagem tabela-rolagem-alta" tabindex="0" aria-label="Tabela com rolagem">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Mês</th>
+                                    <th scope="col">Dia mais quente</th>
+                                    <th scope="col">Dia mais frio</th>
+                                    <th scope="col">Dia mais chuvoso</th>
+                                    <th scope="col">Mês mais chuvoso</th>
+                                    <th scope="col">Mês mais seco</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpoTabelaRecordes"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ABA CALENDÁRIO -->
+            <div id="painel-calendario" class="pilha" role="tabpanel" aria-labelledby="aba-calendario" hidden>
+                <section class="painel calendario">
+                    <div id="gradeCalendario" class="calendario-rolagem" tabindex="0" aria-label="Calendário com rolagem"></div>
+                    <p id="infoCalendario" class="calendario-info" aria-live="polite"></p>
+                    <div id="legendaCalendario" class="legenda"></div>
+                </section>
+            </div>
 
         </div>
     </main>
